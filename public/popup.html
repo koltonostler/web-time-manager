@@ -2,24 +2,43 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>My Chrome Extension</title>
+    <title>Website Time Manager</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
-    <div class="app">
-      <p class="counter-label">Counter</p>
-      <div id="counter" class="counter"></div>
-      <div class="button-container">
-        <button id="decrementBtn" class="button">-</button>
-        <button id="incrementBtn" class="button">+</button>
+    <fieldset id="chart-selection">
+      <div>
+        <input type="radio" id="top5" name="chart" value="top5" />
+        <label for="top5">only show top 5</label>
       </div>
+      <div>
+        <input type="radio" id="all" name="chart" value="all" checked />
+        <label for="all">show all</label>
+      </div>
+    </fieldset>
+    <div style="width: 400px"><canvas id="acquisitions"></canvas></div>
+    <form action="submit" id="timer-form">
+      <div class="url-container">
+        <span>https://</span>
+        <input type="text" name="url" id="url" placeholder="url" />
+      </div>
+      <input
+        type="number"
+        min="0"
+        id="timer"
+        name="timer"
+        placeholder="set timer for website"
+      />
+      <input type="submit" value="set timer" />
+    </form>
 
-      <hr class="divider" />
+    <button id="clearBtn">Clear data</button>
 
-      <p class="title">Chrome Extension is Ready!</p>
-      <p class="subtitle">Start by updating <code>popup.html</code></p>
+    <div class="toggle-container">
+      <span class="toggle-text">Only track active tabs</span>
+      <input type="checkbox" id="checkbox" />
+      <label for="checkbox" class="toggle-switch"> </label>
     </div>
-
     <script src="popup.js"></script>
 
     <!--
