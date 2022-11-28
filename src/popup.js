@@ -2,118 +2,21 @@
 
 import Chart from 'chart.js/auto';
 import './popup.css';
+import { createTodaysChart } from './chart';
+import { getTimeFormat } from './calculations';
 
-const selection = document.querySelector('#chart-selection');
-let chartSelection = 'top5';
+let todaysChart = await createTodaysChart();
 
-async function getTodaysData() {
-  const response = await chrome.storage.sync.get(null);
-  return response;
-}
+const totalTimeSpan = document.querySelector('#total-time');
 
-getTodaysData().then((data) => {
-  let today = new Date().toDateString();
-  console.log(data);
-  const sortedData = Object.keys(data)
-    .filter((key) => {
-      if (key === 'activeState') {
-        return false;
-      }
-      return true;
-    })
-    .map((key) => {
-      return [key, data[key][today]];
-    })
-    .sort((a, b) => a[1] - b[1]);
+let totalTime = todaysChart.config.data.datasets[0].data.reduce(
+  (a, b) => a + b,
+  0
+);
 
-  let todaysData = sortedData.map((datapoint) => {
-    return datapoint[1];
-  });
-  let todaysLabels = sortedData.map((datapoint) => {
-    return datapoint[0];
-  });
+totalTime = getTimeFormat(totalTime);
 
-  const total = todaysData.reduce((a, b) => a + b, 0);
-
-  const chartData = {
-    labels: todaysLabels,
-    datasets: [
-      {
-        data: todaysData,
-        hoverOffset: 40,
-      },
-    ],
-  };
-
-  let options = {
-    plugins: {
-      legend: {
-        display: true,
-        reverse: true,
-      },
-      tooltip: {
-        callbacks: {
-          label: function (context) {
-            const totalSeconds = context.parsed;
-            const hours = Math.floor(totalSeconds / 3600);
-            const min = Math.floor((totalSeconds - hours * 3600) / 60);
-            let sec = totalSeconds - hours * 3600 - min * 60;
-            sec = Math.round(sec * 100) / 100;
-            sec = sec.toFixed(0);
-            let timeFormat = ` ${hours} hr ${min} min`;
-            if (hours < 1) {
-              if (min < 1) {
-                timeFormat = ` ${sec} sec`;
-              } else {
-                timeFormat = ` ${min} min ${sec} sec`;
-              }
-            }
-            return timeFormat;
-          },
-          afterLabel: function (context) {
-            const percentage = context.parsed / total;
-            return '(' + (percentage * 100).toFixed(2) + '%)';
-          },
-        },
-      },
-    },
-  };
-
-  let chart = new Chart(document.getElementById('acquisitions'), {
-    type: 'doughnut',
-    data: chartData,
-    options: options,
-  });
-
-  selection.addEventListener('change', (e) => {
-    console.log('changed');
-    chartSelection = e.target.value;
-    if (chartSelection === 'top5') {
-      const top5 = sortedData.slice(sortedData.length - 5, sortedData.length);
-      todaysData = top5.map((datapoint) => {
-        return datapoint[1];
-      });
-      todaysLabels = top5.map((datapoint) => {
-        return datapoint[0];
-      });
-    } else {
-      todaysData = sortedData.map((datapoint) => {
-        return datapoint[1];
-      });
-      todaysLabels = sortedData.map((datapoint) => {
-        return datapoint[0];
-      });
-    }
-    (chartData.datasets = [
-      {
-        data: todaysData,
-        hoverOffset: 40,
-      },
-    ]),
-      (chartData.labels = todaysLabels);
-    chart.update();
-  });
-});
+totalTimeSpan.innerHTML = totalTime;
 
 const clearButton = document.getElementById('clearBtn');
 

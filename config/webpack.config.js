@@ -8,6 +8,10 @@ const PATHS = require('./paths');
 // Merge webpack configuration files
 const config = (env, argv) =>
   merge(common, {
+    // allows me to return my chart to my popup.js from chart.js with await in the top level
+    experiments: {
+      topLevelAwait: true,
+    },
     entry: {
       popup: PATHS.src + '/popup.js',
       contentScript: PATHS.src + '/contentScript.js',

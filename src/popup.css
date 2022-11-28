@@ -66,3 +66,21 @@ button {
 .toggle-text {
   padding-right: 1rem;
 }
+
+#timer-box {
+  z-index: -1;
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  background-color: transparent;
+  top: 240px;
+  border-radius: 50%;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#total-time {
+  font-size: 1.75rem;
+}
