@@ -1,3 +1,6 @@
+import { Tab } from './tab';
+import { getDomain } from './calculations';
+
 const onUpdate = (tabId, info, tab) =>
   /^https?:/.test(info.url) && findTab([tab]);
 findTab();
@@ -30,110 +33,10 @@ function connect() {
     .onDisconnect.addListener(connect);
 }
 
-const urlIgnoreList = ['chrome://newtab/'];
-
 const openTabs = {};
 
 let trackActiveOnly = true;
 let lastTab;
-
-// setup Tab class
-class Tab {
-  // constructor for class
-  constructor(tabId, windowId, url, icon, audible, budget) {
-    this.tabId = tabId;
-    this.windowId = windowId;
-    this.url = url;
-    this.icon = icon;
-    this.isAudible = audible;
-    this.budget = budget;
-    this.timeStamp = new Date().toDateString();
-    this.start = Date.now();
-    this.end = null;
-  }
-
-  // function that will return true/false on if the site is blocked.
-  async isBlocked() {
-    let domain = getDomain(this.url);
-    let date = this.timeStamp;
-    let budgetedTime = this.budget;
-    let promise = new Promise((resolve) => {
-      if (domain) {
-        // get stored data for domain
-        chrome.storage.sync.get(domain, (res) => {
-          // if the domain has no data or there is no budget for the domain, return false
-          if (
-            Object.keys(res).length === 0 ||
-            Object.keys(res[domain]).length === 0 ||
-            budgetedTime === null
-          ) {
-            resolve(false);
-            return;
-          }
-          const domainTime = res[domain][date];
-          // check to see if current day time spent at domain is greater than budgeted time.  if so return true
-          if (domainTime > budgetedTime) {
-            resolve(true);
-          } else {
-            resolve(false);
-          }
-        });
-      }
-    });
-    let result = await promise;
-    return result;
-  }
-
-  setStartTime() {
-    this.start = Date.now();
-  }
-
-  setCloseTime() {
-    this.end = Date.now();
-    this.calcTimeOpen();
-  }
-
-  // function that calculates the time the current tab was open for using start and end times
-  calcTimeOpen() {
-    const timeOpenMilli = this.end - this.start;
-    const timeOpenSec = timeOpenMilli / 1000;
-    console.log(`${this.url} was open for ${timeOpenSec} seconds`);
-    this.updateStorage(timeOpenSec);
-  }
-
-  //  function that will update storage with the data from calcTimeOpen;
-  async updateStorage(timeOpen) {
-    if (
-      !this.url ||
-      urlIgnoreList.includes(this.url) ||
-      (await this.isBlocked())
-    ) {
-      // if url does not exist or is in urlIgnoreList or isBlocked, then do nothing
-    } else {
-      const domain = getDomain(this.url);
-      // get data from storage for current domain
-      await chrome.storage.sync.get(domain, (res) => {
-        const fullDate = new Date().toDateString();
-        // if domain has no data stored, just store the current data
-        if (Object.keys(res).length === 0) {
-          chrome.storage.sync.set({ [domain]: { [fullDate]: timeOpen } });
-        } else {
-          let newData = res[domain];
-          // if date already exists, add the timeOpen to the existing time.
-          if (fullDate in newData) {
-            const oldTime = parseFloat(res[domain][fullDate]);
-            const newTime = oldTime + parseFloat(timeOpen);
-            newData[fullDate] = newTime;
-          } else {
-            newData[fullDate] = timeOpen;
-          }
-          // set the new data to storage
-          chrome.storage.sync.set({ [domain]: newData });
-        }
-      });
-    }
-  }
-}
 
 async function getBudget(url) {
   const domain = getDomain(url);
@@ -185,15 +88,6 @@ function recordAndCloseTab(tabId, windowId) {
     delete openTabs[tabId];
   }
 }
-// function that verifies the url is valid and returns the domain.
-function getDomain(url) {
-  try {
-    const domain = new URL(url).hostname;
-    return domain;
-  } catch (err) {
-    return 'hello';
-  }
-}
 
 async function getActiveState() {
   let activeState = await chrome.storage.sync.get('activeState');
@@ -213,7 +107,13 @@ function blockSite(budget, url) {
 const blockPageCss =
   'body {background-color: black !important; color: white !important}';
 
+let timeoutIds = [];
+
 async function blockedSiteCheck(tab) {
+  for (let index in timeoutIds) {
+    clearTimeout(timeoutIds[index]);
+    timeoutIds.splice(index, 1);
+  }
   if (await tab.isBlocked()) {
     chrome.scripting.executeScript({
       target: { tabId: tab.tabId },
@@ -224,9 +124,89 @@ async function blockedSiteCheck(tab) {
       target: { tabId: tab.tabId },
       css: blockPageCss,
     });
-    return true;
+  } else if (tab.budget !== null) {
+    let domain = getDomain(tab.url);
+    let date = tab.timeStamp;
+    let budgetedTime = tab.budget;
+    let promise = new Promise((resolve) => {
+      // get stored data for domain
+      chrome.storage.sync.get(domain, (res) => {
+        // if the domain has no data or there is no budget for the domain, return false
+        if (
+          Object.keys(res).length === 0 ||
+          Object.keys(res[domain]).length === 0 ||
+          budgetedTime === null
+        ) {
+          resolve(false);
+          return;
+        }
+        const domainTime = res[domain][date];
+        // check to see if current day time spent at domain is greater than budgeted time.  if so return true
+        resolve(domainTime);
+      });
+    });
+    let domainTime = await promise;
+    let timeUntilBlock = (budgetedTime - domainTime) * 1000;
+
+    console.log(timeUntilBlock);
+    let timeoutId = setTimeout(async () => {
+      chrome.scripting.executeScript({
+        target: { tabId: tab.tabId },
+        func: blockSite,
+        args: [tab.budget, tab.url],
+      });
+      chrome.scripting.insertCSS({
+        target: { tabId: tab.tabId },
+        css: blockPageCss,
+      });
+      tab.setCloseTime();
+    }, timeUntilBlock);
+    timeoutIds.push(timeoutId);
   }
-  return false;
+}
+
+async function checkLastTab(tab) {
+  let allTabs = await chrome.tabs.query({});
+
+  if (allTabs.length === 1) {
+    console.log(true);
+    chrome.scripting.executeScript({
+      target: { tabId: tab.tabId },
+      func: addCloseListener,
+      args: [tab],
+    });
+  }
+}
+
+async function addCloseListener(tab) {
+  let onBeforeUnLoadEvent = false;
+
+  window.onunload = window.onbeforeunload = function () {
+    if (!onBeforeUnLoadEvent) {
+      onBeforeUnLoadEvent = true;
+      tab['end'] = Date.now();
+      chrome.storage.sync.set({ lastTab: tab });
+    }
+  };
+}
+
+async function loadAndStoreLastTab() {
+  let lastOpenTab = await chrome.storage.sync.get('lastTab');
+  lastOpenTab = lastOpenTab['lastTab'];
+  let tabToStore = new Tab(
+    lastOpenTab.tabId,
+    lastOpenTab.windowId,
+    lastOpenTab.url,
+    lastOpenTab.icon,
+    lastOpenTab.isAudible,
+    lastOpenTab.budget
+  );
+
+  tabToStore.start = lastOpenTab.start;
+  tabToStore.end = lastOpenTab.end;
+  tabToStore.timeStamp = lastOpenTab.timeStamp;
+
+  tabToStore.calcTimeOpen();
 }
 
 /*   TAB LISTENERS   */
@@ -236,6 +216,22 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete') {
     recordAndCloseTab(tabId, tab.windowId);
     lastTab = await createNewTab(tab);
+    checkLastTab(lastTab);
+    blockedSiteCheck(lastTab);
+  }
+});
+
+// listener for computer going to idle state
+chrome.idle.onStateChanged.addListener(async (newState) => {
+  // record and close active tab when state changed to idle
+  if (newState === 'idle') {
+    recordAndCloseTab(lastTab.tabId, lastTab.windowId);
+  }
+  // when waking up from idle, get active tab and see if it is the only open tab and check if site is blocked
+  if (newState === 'active') {
+    let activeTab = await getActiveTab();
+    lastTab = await createNewTab(activeTab);
+    checkLastTab(lastTab);
     blockedSiteCheck(lastTab);
   }
 });
@@ -261,20 +257,15 @@ chrome.tabs.onActivated.addListener(async (tabInfo) => {
   let activeTab = await getActiveTab();
 
   lastTab = await createNewTab(activeTab);
-
+  checkLastTab(lastTab);
   blockedSiteCheck(lastTab);
 });
 
-// chrome.tabs.onDetached.addListener((tabId, detachInfo) => {
-// 	console.log(detachInfo);
-// 	chrome.windows.get(detachInfo.oldWindowId, { populate: true }, async () => {
-// 		let activeTabs = await chrome.tabs.query({ active: true });
-
-// 		console.log(activeTabs);
-// 	});
-// });
-
 chrome.windows.onCreated.addListener(async () => {
+  let allWindows = await chrome.windows.getAll();
+  if (allWindows.length === 1) {
+    loadAndStoreLastTab();
+  }
   let activeTabs = await getActiveTabs();
   activeTabs.forEach(async (tab) => {
     await createNewTab(tab);

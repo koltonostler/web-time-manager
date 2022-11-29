@@ -105,7 +105,6 @@ export async function createTodaysChart() {
           callbacks: {
             title: function (context) {
               let index = context[0].dataIndex;
-              console.log(context[0].dataIndex);
               return context[0].dataset.labels[index];
             },
             label: function (context) {
@@ -138,9 +137,6 @@ export async function createTodaysChart() {
       );
       if (slice.length) {
         const firstSlice = slice[0];
-
-        console.log(firstSlice);
-        console.log(myChart);
         const label =
           myChart.data.datasets[firstSlice.datasetIndex].labels[
             firstSlice.index

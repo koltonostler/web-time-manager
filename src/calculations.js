@@ -16,3 +16,13 @@ export function getTimeFormat(totalSeconds) {
   }
   return timeFormat;
 }
+
+// function that verifies the url is valid and returns the domain.
+export function getDomain(url) {
+  try {
+    const domain = new URL(url).hostname;
+    return domain;
+  } catch (err) {
+    return 'hello';
+  }
+}
