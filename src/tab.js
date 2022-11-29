@@ -1,4 +1,4 @@
-const urlIgnoreList = ['chrome://newtab/', 'chrome://extensions/'];
+export const urlIgnoreList = ['chrome://newtab/', 'chrome://extensions/'];
 import { getDomain } from './calculations';
 
 export class Tab {

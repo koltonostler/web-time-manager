@@ -1,4 +1,4 @@
-import { Tab } from './tab';
+import { Tab, urlIgnoreList } from './tab';
 import { getDomain } from './calculations';
 
 const onUpdate = (tabId, info, tab) =>
@@ -169,12 +169,16 @@ async function checkLastTab(tab) {
   let allTabs = await chrome.tabs.query({});
 
   if (allTabs.length === 1) {
-    console.log(true);
-    chrome.scripting.executeScript({
-      target: { tabId: tab.tabId },
-      func: addCloseListener,
-      args: [tab],
-    });
+    console.log(tab.url);
+    if (tab.url?.startsWith('chrome://')) {
+    } else {
+      console.log(true);
+      chrome.scripting.executeScript({
+        target: { tabId: tab.tabId },
+        func: addCloseListener,
+        args: [tab],
+      });
+    }
   }
 }
 
@@ -239,6 +243,7 @@ chrome.idle.onStateChanged.addListener(async (newState) => {
 // listener for closing a tab to setCloseTime only if the closed tab is the active tab
 chrome.tabs.onRemoved.addListener((tabId, info) => {
   recordAndCloseTab(tabId, info.windowId);
+  checkLastTab(lastTab);
 });
 // listener for changing tabs and then will close previous tab and set new current tab to active tab.
 chrome.tabs.onActivated.addListener(async (tabInfo) => {
