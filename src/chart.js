@@ -180,6 +180,23 @@ export async function createWeeklyChart() {
       weeklyData.unshift(value);
     }
 
+    function calcStepSize(weeklyData) {
+      // default step size is 30min(1800 sec);
+      let stepSize = 1800;
+
+      // get the max of the weeklyData
+      let max = weeklyData.reduce((prev, curr) => {
+        return prev > curr ? prev : curr;
+      });
+
+      // if the max is greater than 3hr(10800 sec), up the step size to 1hr(3600 sec)
+      if (max >= 10800) {
+        stepSize = 3600;
+      }
+
+      return stepSize;
+    }
+
     const chartData = {
       labels: weeklyLabels,
       datasets: [
@@ -208,7 +225,7 @@ export async function createWeeklyChart() {
             font: {
               size: 11,
             },
-            stepSize: 1800,
+            stepSize: calcStepSize(weeklyData),
             callback: function (value, index, ticks) {
               let formatedValue = getTimeFormat2(value);
               return formatedValue;
