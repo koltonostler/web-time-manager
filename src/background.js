@@ -217,6 +217,7 @@ async function loadAndStoreLastTab() {
 
 // add Listener for page update
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  console.log('update listener');
   if (changeInfo.status === 'complete') {
     recordAndCloseTab(tabId, tab.windowId);
     lastTab = await createNewTab(tab);
@@ -226,27 +227,30 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 });
 
 // listener for computer going to idle state
-chrome.idle.onStateChanged.addListener(async (newState) => {
-  // record and close active tab when state changed to idle
-  if (newState === 'idle') {
-    recordAndCloseTab(lastTab.tabId, lastTab.windowId);
-  }
-  // when waking up from idle, get active tab and see if it is the only open tab and check if site is blocked
-  if (newState === 'active') {
-    let activeTab = await getActiveTab();
-    lastTab = await createNewTab(activeTab);
-    checkLastTab(lastTab);
-    blockedSiteCheck(lastTab);
-  }
-});
+// chrome.idle.onStateChanged.addListener(async (newState) => {
+//   console.log('idle listener');
+//   // record and close active tab when state changed to idle
+//   if (newState === 'idle') {
+//     recordAndCloseTab(lastTab.tabId, lastTab.windowId);
+//   }
+//   // when waking up from idle, get active tab and see if it is the only open tab and check if site is blocked
+//   if (newState === 'active') {
+//     let activeTab = await getActiveTab();
+//     lastTab = await createNewTab(activeTab);
+//     checkLastTab(lastTab);
+//     blockedSiteCheck(lastTab);
+//   }
+// });
 
 // listener for closing a tab to setCloseTime only if the closed tab is the active tab
 chrome.tabs.onRemoved.addListener((tabId, info) => {
+  console.log('remove listener');
   recordAndCloseTab(tabId, info.windowId);
   checkLastTab(lastTab);
 });
 // listener for changing tabs and then will close previous tab and set new current tab to active tab.
 chrome.tabs.onActivated.addListener(async (tabInfo) => {
+  console.log('on activated listener');
   // check to see if trackActiveOnly is toggled on
   if (trackActiveOnly) {
     // check to make sure there is a tab to close
@@ -267,6 +271,11 @@ chrome.tabs.onActivated.addListener(async (tabInfo) => {
 });
 
 chrome.windows.onCreated.addListener(async () => {
+  for (let index in timeoutIds) {
+    clearTimeout(timeoutIds[index]);
+    timeoutIds.splice(index, 1);
+  }
+  console.log('on window created listener');
   let allWindows = await chrome.windows.getAll();
   if (allWindows.length === 1) {
     loadAndStoreLastTab();

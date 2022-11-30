@@ -1,23 +1,25 @@
 'use strict';
 
-import Chart from 'chart.js/auto';
 import './popup.css';
-import { createTodaysChart } from './chart';
-import { getTimeFormat } from './calculations';
+import { createTodaysChart, createWeeklyChart } from './chart';
+import {
+  displayTodayTotalTime,
+  getTimeFormat,
+  storeTodayTotalTime,
+} from './calculations';
 
+// create today's doughnut chart
 let todaysChart = await createTodaysChart();
-
-const totalTimeSpan = document.querySelector('#total-time');
 
 let totalTime = todaysChart.config.data.datasets[0].data.reduce(
   (a, b) => a + b,
   0
 );
 
-totalTime = getTimeFormat(totalTime);
+storeTodayTotalTime(totalTime);
+displayTodayTotalTime(totalTime);
 
-totalTimeSpan.innerHTML = totalTime;
-
+let weeklyChart = await createWeeklyChart();
 const clearButton = document.getElementById('clearBtn');
 
 clearButton.addEventListener('click', () => {
