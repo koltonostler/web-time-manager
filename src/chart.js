@@ -1,25 +1,19 @@
 'use strict';
 import Chart from 'chart.js/auto';
-import { getLastWeek, getTimeFormat, getTimeFormat2 } from './calculations';
+import {
+  getAllData,
+  getLastWeek,
+  getTimeFormat,
+  getTimeFormat2,
+} from './calculations';
 
 export async function createTodaysChart() {
-  async function getTodaysData() {
-    const response = await chrome.storage.sync.get(null);
-    return response;
-  }
-
-  let chart = await getTodaysData().then((data) => {
+  let chart = await getAllData().then((data) => {
     const today = new Date().toDateString();
 
-    const sortedData = Object.keys(data)
-      .filter((key) => {
-        if (key === 'activeState' || data[key][today] === undefined) {
-          return false;
-        }
-        return true;
-      })
-      .map((key) => {
-        return [key, data[key][today]];
+    const sortedData = Object.keys(data[today])
+      .map((domain) => {
+        return [domain, data[today][domain]];
       })
       .sort((a, b) => a[1] - b[1]);
 
@@ -158,12 +152,7 @@ export async function createTodaysChart() {
 }
 
 export async function createWeeklyChart() {
-  async function getData() {
-    const response = await chrome.storage.sync.get(null);
-    return response;
-  }
-
-  let weeklyChart = getData().then((res) => {
+  let weeklyChart = getAllData().then((res) => {
     let weeklyLabels = [];
 
     let weeklyData = [];
@@ -175,7 +164,7 @@ export async function createWeeklyChart() {
         month: 'short',
         day: 'numeric',
       });
-      let value = res[dateString];
+      let value = res['totals'][dateString];
       weeklyLabels.unshift(dayMonth);
       weeklyData.unshift(value);
     }

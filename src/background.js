@@ -1,4 +1,4 @@
-import { Tab, urlIgnoreList } from './tab';
+import { Tab } from './tab';
 import { getDomain } from './calculations';
 
 const onUpdate = (tabId, info, tab) =>
@@ -43,12 +43,10 @@ async function getBudget(url) {
   if (domain) {
     let budget = null;
     // get domain data from storage
-    const data = await chrome.storage.sync.get(domain);
+    const data = await chrome.storage.sync.get('budget');
     // if domain has data, get the budget
-    if (data[domain]) {
-      if ('budget' in data[domain]) {
-        budget = data[domain]['budget'];
-      }
+    if (domain in data['budget']) {
+      budget = data['budget'][domain];
     }
     return budget;
   }
@@ -130,17 +128,17 @@ async function blockedSiteCheck(tab) {
     let budgetedTime = tab.budget;
     let promise = new Promise((resolve) => {
       // get stored data for domain
-      chrome.storage.sync.get(domain, (res) => {
-        // if the domain has no data or there is no budget for the domain, return false
+      chrome.storage.sync.get(date, (res) => {
+        // if there is no budget for the domain or no data for the date
         if (
           Object.keys(res).length === 0 ||
-          Object.keys(res[domain]).length === 0 ||
+          Object.keys(res[date]).length === 0 ||
           budgetedTime === null
         ) {
           resolve(false);
           return;
         }
-        const domainTime = res[domain][date];
+        const domainTime = res[date][domain];
         // check to see if current day time spent at domain is greater than budgeted time.  if so return true
         resolve(domainTime);
       });
@@ -169,7 +167,6 @@ async function checkLastTab(tab) {
   let allTabs = await chrome.tabs.query({});
 
   if (allTabs.length === 1) {
-    console.log(tab.url);
     if (tab.url?.startsWith('chrome://')) {
     } else {
       console.log(true);
@@ -179,6 +176,7 @@ async function checkLastTab(tab) {
         args: [tab],
       });
     }
+  } else {
   }
 }
 
@@ -217,7 +215,6 @@ async function loadAndStoreLastTab() {
 
 // add Listener for page update
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  console.log('update listener');
   if (changeInfo.status === 'complete') {
     recordAndCloseTab(tabId, tab.windowId);
     lastTab = await createNewTab(tab);
@@ -226,31 +223,13 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   }
 });
 
-// listener for computer going to idle state
-// chrome.idle.onStateChanged.addListener(async (newState) => {
-//   console.log('idle listener');
-//   // record and close active tab when state changed to idle
-//   if (newState === 'idle') {
-//     recordAndCloseTab(lastTab.tabId, lastTab.windowId);
-//   }
-//   // when waking up from idle, get active tab and see if it is the only open tab and check if site is blocked
-//   if (newState === 'active') {
-//     let activeTab = await getActiveTab();
-//     lastTab = await createNewTab(activeTab);
-//     checkLastTab(lastTab);
-//     blockedSiteCheck(lastTab);
-//   }
-// });
-
 // listener for closing a tab to setCloseTime only if the closed tab is the active tab
 chrome.tabs.onRemoved.addListener((tabId, info) => {
-  console.log('remove listener');
   recordAndCloseTab(tabId, info.windowId);
   checkLastTab(lastTab);
 });
 // listener for changing tabs and then will close previous tab and set new current tab to active tab.
 chrome.tabs.onActivated.addListener(async (tabInfo) => {
-  console.log('on activated listener');
   // check to see if trackActiveOnly is toggled on
   if (trackActiveOnly) {
     // check to make sure there is a tab to close

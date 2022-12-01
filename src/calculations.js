@@ -34,6 +34,11 @@ export function getTimeFormat2(totalSeconds) {
   return timeFormat;
 }
 
+export async function getAllData() {
+  const response = await chrome.storage.sync.get(null);
+  return response;
+}
+
 // function that verifies the url is valid and returns the domain.
 export function getDomain(url) {
   try {
@@ -68,14 +73,63 @@ export function getLastWeek(startingDate) {
   return lastWeekDates;
 }
 
-export function storeTodayTotalTime(totalTime) {
+export async function storeTodayTotalTime(totalTime) {
   let today = new Date().toDateString();
   // set the total time for today in seconds whenever you open the popup
-  chrome.storage.sync.set({ [today]: totalTime });
+  await chrome.storage.sync.get('totals', (res) => {
+    if ('totals' in res) {
+      let newData = res['totals'];
+      newData[today] = totalTime;
+      chrome.storage.sync.set({ totals: newData });
+    } else {
+      chrome.storage.sync.set({ totals: { [today]: totalTime } });
+    }
+  });
 }
 
 export function displayTodayTotalTime(totalTime) {
   const totalTimeSpan = document.querySelector('#total-time');
   totalTime = getTimeFormat(totalTime);
   totalTimeSpan.innerHTML = totalTime;
+}
+
+export async function getTopSites() {
+  let result = getAllData().then((res) => {
+    let compiledResults = {};
+    Object.keys(res)
+      .filter((key) => {
+        if (['activeState', 'budget', 'lastTab', 'totals'].includes(key)) {
+          return false;
+        }
+        return true;
+      })
+      .map((date) => {
+        for (const domain in res[date]) {
+          if (domain in compiledResults) {
+            currentVal = compiledResults[domain];
+            compiledResults[domain] = currentVal + res[date][domain];
+            console.log(res[date][domain]);
+          } else {
+            compiledResults[domain] = res[date][domain];
+          }
+        }
+      });
+
+    let sortedTotals = Object.keys(compiledResults)
+      .map((key) => {
+        return [key, compiledResults[key]];
+      })
+      .sort((a, b) => a[1] - b[1]);
+    return sortedTotals;
+  });
+
+  return result;
+}
+
+export function saveTab(tab) {
+  if (!onBeforeUnLoadEvent) {
+    onBeforeUnLoadEvent = true;
+    tab['end'] = Date.now();
+    chrome.storage.sync.set({ lastTab: tab });
+  }
 }

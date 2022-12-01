@@ -23,17 +23,17 @@ export class Tab {
     let promise = new Promise((resolve) => {
       if (domain) {
         // get stored data for domain
-        chrome.storage.sync.get(domain, (res) => {
+        chrome.storage.sync.get(date, (res) => {
           // if the domain has no data or there is no budget for the domain, return false
           if (
             Object.keys(res).length === 0 ||
-            Object.keys(res[domain]).length === 0 ||
+            Object.keys(res[date]).length === 0 ||
             budgetedTime === null
           ) {
             resolve(false);
             return;
           }
-          const domainTime = res[domain][date];
+          const domainTime = res[date][domain];
           // check to see if current day time spent at domain is greater than budgeted time.  if so return true
           if (domainTime > budgetedTime) {
             resolve(true);
@@ -60,11 +60,10 @@ export class Tab {
   calcTimeOpen() {
     const timeOpenMilli = this.end - this.start;
     const timeOpenSec = timeOpenMilli / 1000;
-    console.log(`${this.url} was open for ${timeOpenSec} seconds`);
+    // console.log(`${this.url} was open for ${timeOpenSec} seconds`);
     this.updateStorage(timeOpenSec);
   }
 
-  //  function that will update storage with the data from calcTimeOpen;
   async updateStorage(timeOpen) {
     if (
       !this.url ||
@@ -74,25 +73,25 @@ export class Tab {
       // if url does not exist or is in urlIgnoreList or isBlocked, then do nothing
     } else {
       const domain = getDomain(this.url);
-      // get data from storage for current domain
-      await chrome.storage.sync.get(domain, (res) => {
-        const fullDate = new Date().toDateString();
-        // if domain has no data stored, just store the current data
+      const fullDate = new Date().toDateString();
+      // get data from storage for current date
+      await chrome.storage.sync.get(fullDate, (res) => {
         if (Object.keys(res).length === 0) {
-          chrome.storage.sync.set({ [domain]: { [fullDate]: timeOpen } });
+          chrome.storage.sync.set({ [fullDate]: { [domain]: timeOpen } });
         } else {
-          let newData = res[domain];
+          let newData = res[fullDate];
           // if date already exists, add the timeOpen to the existing time.
-          if (fullDate in newData) {
-            const oldTime = parseFloat(res[domain][fullDate]);
+          if (domain in newData) {
+            const oldTime = parseFloat(newData[domain]);
             const newTime = oldTime + parseFloat(timeOpen);
-            newData[fullDate] = newTime;
+            newData[domain] = newTime;
           } else {
-            newData[fullDate] = timeOpen;
+            newData[domain] = timeOpen;
           }
           // set the new data to storage
-          chrome.storage.sync.set({ [domain]: newData });
+          chrome.storage.sync.set({ [fullDate]: newData });
         }
+        // if domain has no data stored, just store the current data
       });
     }
   }
