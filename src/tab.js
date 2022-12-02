@@ -1,5 +1,6 @@
-export const urlIgnoreList = ['chrome://newtab/', 'chrome://extensions/'];
 import { getDomain } from './calculations';
+
+export const urlIgnoreList = ['newtab', 'extensions'];
 
 export class Tab {
   // constructor for class
@@ -60,19 +61,19 @@ export class Tab {
   calcTimeOpen() {
     const timeOpenMilli = this.end - this.start;
     const timeOpenSec = timeOpenMilli / 1000;
-    // console.log(`${this.url} was open for ${timeOpenSec} seconds`);
+    console.log(`${this.url} was open for ${timeOpenSec} seconds`);
     this.updateStorage(timeOpenSec);
   }
 
   async updateStorage(timeOpen) {
+    const domain = getDomain(this.url);
     if (
       !this.url ||
-      urlIgnoreList.includes(this.url) ||
+      urlIgnoreList.includes(domain) ||
       (await this.isBlocked())
     ) {
       // if url does not exist or is in urlIgnoreList or isBlocked, then do nothing
     } else {
-      const domain = getDomain(this.url);
       const fullDate = new Date().toDateString();
       // get data from storage for current date
       await chrome.storage.sync.get(fullDate, (res) => {

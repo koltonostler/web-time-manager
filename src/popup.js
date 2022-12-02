@@ -6,12 +6,18 @@ import {
   displayTodayTotalTime,
   getDomain,
   getTimeFormat,
+  getTop3,
   getTopSites,
   storeTodayTotalTime,
+  toggleHide,
 } from './calculations';
 
+let todaysChart;
+let weeklyChart;
+let displayedChart = 'daily';
+
 // create today's doughnut chart
-let todaysChart = await createTodaysChart();
+todaysChart = await createTodaysChart();
 
 let totalTime = todaysChart.config.data.datasets[0].data.reduce(
   (a, b) => a + b,
@@ -20,35 +26,7 @@ let totalTime = todaysChart.config.data.datasets[0].data.reduce(
 
 storeTodayTotalTime(totalTime);
 displayTodayTotalTime(totalTime);
-
-let weeklyChart = await createWeeklyChart();
-const clearButton = document.getElementById('clearBtn');
-
-clearButton.addEventListener('click', () => {
-  chrome.storage.sync.clear();
-});
-
-let orderedSites = await getTopSites();
-
-let top3 = [];
-
-for (let i = orderedSites.length - 1; i > orderedSites.length - 4; i--) {
-  top3.push(orderedSites[i]);
-}
-
-top3.forEach(async (value, index) => {
-  const parent = document.getElementById('top3');
-
-  const newDiv = document.createElement('div');
-
-  const content = document.createTextNode(
-    `${index + 1}. ${top3[index][0]} - ${getTimeFormat(top3[index][1])}`
-  );
-
-  newDiv.appendChild(content);
-
-  parent.insertAdjacentElement('beforeEnd', newDiv);
-});
+getTop3();
 
 let toggleActive = { trackActive: true };
 
@@ -98,4 +76,28 @@ toggle.addEventListener('change', () => {
 chrome.runtime.sendMessage({ msg: 'getActiveState' }, function (response) {
   toggleActive.trackActive = response.activeState;
   toggle.checked = toggleActive.trackActive;
+});
+
+const dailyBtn = document.querySelector('#daily');
+const weeklyBtn = document.querySelector('#weekly');
+const timeSpan = document.querySelector('.total-time');
+const top3Div = document.querySelector('.top3');
+
+dailyBtn.addEventListener('click', async () => {
+  if (displayedChart === 'weekly') {
+    weeklyChart.destroy();
+    todaysChart = await createTodaysChart();
+    toggleHide(timeSpan);
+    toggleHide(top3Div);
+    displayedChart = 'daily';
+  }
+});
+weeklyBtn.addEventListener('click', async () => {
+  if (displayedChart === 'daily') {
+    todaysChart.destroy();
+    weeklyChart = await createWeeklyChart();
+    toggleHide(timeSpan);
+    toggleHide(top3Div);
+    displayedChart = 'weekly';
+  }
 });

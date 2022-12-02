@@ -5,7 +5,7 @@ body {
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  margin: 1rem 3rem;
+  margin: 1rem 5rem;
 }
 
 form {
@@ -67,20 +67,22 @@ button {
   padding-right: 1rem;
 }
 
-#timer-box {
+.total-time {
   z-index: -1;
   position: absolute;
   width: 150px;
   height: 150px;
+  top: 305px;
+  left: 205px;
   background-color: transparent;
-  top: 240px;
   border-radius: 50%;
   text-align: center;
   display: flex;
   justify-content: center;
   align-items: center;
+  font-size: 1.75rem;
 }
 
-#total-time {
-  font-size: 1.75rem;
+.hide {
+  display: none;
 }

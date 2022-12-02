@@ -1,4 +1,4 @@
-import { Tab } from './tab';
+import { Tab, urlIgnoreList } from './tab';
 import { getDomain } from './calculations';
 
 const onUpdate = (tabId, info, tab) =>
@@ -36,6 +36,12 @@ function connect() {
 const openTabs = {};
 
 let trackActiveOnly = true;
+// chrome.storage.sync.remove('activeState');
+if (Object.keys(await chrome.storage.sync.get('activeState')).length === 0) {
+  console.log('setting active state');
+  chrome.storage.sync.set({ activeState: true });
+}
+
 let lastTab;
 
 async function getBudget(url) {
@@ -167,7 +173,8 @@ async function checkLastTab(tab) {
   let allTabs = await chrome.tabs.query({});
 
   if (allTabs.length === 1) {
-    if (tab.url?.startsWith('chrome://')) {
+    // dont record last tab if it is in the ignore list
+    if (urlIgnoreList.includes(getDomain(tab.url))) {
     } else {
       console.log(true);
       chrome.scripting.executeScript({
@@ -213,20 +220,62 @@ async function loadAndStoreLastTab() {
 
 /*   TAB LISTENERS   */
 
+chrome.idle.setDetectionInterval(15 * 60);
+
+chrome.idle.onStateChanged.addListener(async (newState) => {
+  console.log(newState);
+  if (!lastTab.isAudible) {
+    if (newState === 'idle') {
+      recordAndCloseTab(lastTab.tabId, lastTab.windowId);
+    }
+    if (newState === 'active') {
+      const tab = await getActiveTab();
+      lastTab = await createNewTab(tab);
+      checkLastTab(lastTab);
+      blockedSiteCheck(lastTab);
+    }
+  }
+});
+
 // add Listener for page update
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete') {
-    recordAndCloseTab(tabId, tab.windowId);
-    lastTab = await createNewTab(tab);
-    checkLastTab(lastTab);
-    blockedSiteCheck(lastTab);
+  if (lastTab !== undefined) {
+    if (changeInfo.status === 'complete' && lastTab.tabId === tabId) {
+      recordAndCloseTab(tabId, tab.windowId);
+      lastTab = await createNewTab(tab);
+      checkLastTab(lastTab);
+      blockedSiteCheck(lastTab);
+    }
+  } else {
+    if (changeInfo.status === 'complete') {
+      recordAndCloseTab(tabId, tab.windowId);
+      lastTab = await createNewTab(tab);
+      checkLastTab(lastTab);
+      blockedSiteCheck(lastTab);
+    }
   }
 });
 
 // listener for closing a tab to setCloseTime only if the closed tab is the active tab
-chrome.tabs.onRemoved.addListener((tabId, info) => {
-  recordAndCloseTab(tabId, info.windowId);
-  checkLastTab(lastTab);
+chrome.tabs.onRemoved.addListener(async (tabId, info) => {
+  if (info.isWindowClosing) {
+    recordAndCloseTab(tabId, info.windowId);
+    checkLastTab(lastTab);
+  } else {
+    //  if the removed tab is not the active tab
+    console.log(tabId, lastTab.tabId);
+    if (tabId !== lastTab.tabId) {
+      checkLastTab(lastTab);
+    } else {
+      recordAndCloseTab(tabId, info.windowId);
+
+      let newActiveTab = await getActiveTab();
+      if (newActiveTab !== undefined) {
+        lastTab = await createNewTab(newActiveTab);
+        checkLastTab(lastTab);
+      }
+    }
+  }
 });
 // listener for changing tabs and then will close previous tab and set new current tab to active tab.
 chrome.tabs.onActivated.addListener(async (tabInfo) => {

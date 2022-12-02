@@ -99,6 +99,9 @@ export async function createTodaysChart() {
           callbacks: {
             title: function (context) {
               let index = context[0].dataIndex;
+              if (context[0].dataset.labels[index] === 'other') {
+                return 'other (click for details)';
+              }
               return context[0].dataset.labels[index];
             },
             label: function (context) {
@@ -119,7 +122,7 @@ export async function createTodaysChart() {
       options: options,
     };
 
-    const ctx = document.getElementById('daily-chart');
+    const ctx = document.getElementById('chart');
     let myChart = new Chart(ctx, config);
 
     function getSlice(click) {
@@ -253,7 +256,7 @@ export async function createWeeklyChart() {
       options: options,
     };
 
-    const ctx = document.getElementById('weekly-chart');
+    const ctx = document.getElementById('chart');
     let chart = new Chart(ctx, config);
 
     return chart;

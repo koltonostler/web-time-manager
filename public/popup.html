@@ -7,9 +7,15 @@
   </head>
   <body>
     <h1>Web Time Manager</h1>
-    <div style="width: 400px"><canvas id="daily-chart"></canvas></div>
-    <div style="width: 500px"><canvas id="weekly-chart"></canvas></div>
-    <div id="top3"></div>
+    <button id="daily" class="chart-btn">Today's Summary</button>
+    <button id="weekly" class="chart-btn">Weekly Summary</button>
+    <div style="width: 400px; height: 400px">
+      <div class="daily-chart-container" style="width: 400px">
+        <span class="total-time"></span>
+        <canvas id="chart"></canvas>
+        <div class="top3 hide"></div>
+      </div>
+    </div>
     <form action="submit" id="timer-form">
       <div class="url-container">
         <span>https://</span>
@@ -24,11 +30,6 @@
       />
       <input type="submit" value="set timer" />
     </form>
-    <div id="timer-box">
-      <span id="total-time">4hr 30min</span>
-    </div>
-
-    <button id="clearBtn">Clear data</button>
 
     <div class="toggle-container">
       <span class="toggle-text">Only track active tabs</span>

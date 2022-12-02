@@ -73,10 +73,10 @@ export function getLastWeek(startingDate) {
   return lastWeekDates;
 }
 
-export async function storeTodayTotalTime(totalTime) {
+export function storeTodayTotalTime(totalTime) {
   let today = new Date().toDateString();
   // set the total time for today in seconds whenever you open the popup
-  await chrome.storage.sync.get('totals', (res) => {
+  chrome.storage.sync.get('totals', (res) => {
     if ('totals' in res) {
       let newData = res['totals'];
       newData[today] = totalTime;
@@ -87,10 +87,37 @@ export async function storeTodayTotalTime(totalTime) {
   });
 }
 
+export async function getTop3() {
+  let orderedSites = await getTopSites();
+  let top3 = [];
+
+  for (let i = orderedSites.length - 1; i > orderedSites.length - 4; i--) {
+    top3.push(orderedSites[i]);
+  }
+
+  top3.forEach(async (value, index) => {
+    const parent = document.querySelector('.top3');
+
+    const newDiv = document.createElement('div');
+
+    const content = document.createTextNode(
+      `${index + 1}. ${top3[index][0]} - ${getTimeFormat(top3[index][1])}`
+    );
+
+    newDiv.appendChild(content);
+
+    parent.insertAdjacentElement('beforeEnd', newDiv);
+  });
+}
+
 export function displayTodayTotalTime(totalTime) {
-  const totalTimeSpan = document.querySelector('#total-time');
+  const totalTimeSpan = document.querySelector('.total-time');
   totalTime = getTimeFormat(totalTime);
   totalTimeSpan.innerHTML = totalTime;
+}
+
+export function toggleHide(element) {
+  element.classList.toggle('hide');
 }
 
 export async function getTopSites() {
@@ -106,9 +133,8 @@ export async function getTopSites() {
       .map((date) => {
         for (const domain in res[date]) {
           if (domain in compiledResults) {
-            currentVal = compiledResults[domain];
+            let currentVal = compiledResults[domain];
             compiledResults[domain] = currentVal + res[date][domain];
-            console.log(res[date][domain]);
           } else {
             compiledResults[domain] = res[date][domain];
           }
@@ -124,12 +150,4 @@ export async function getTopSites() {
   });
 
   return result;
-}
-
-export function saveTab(tab) {
-  if (!onBeforeUnLoadEvent) {
-    onBeforeUnLoadEvent = true;
-    tab['end'] = Date.now();
-    chrome.storage.sync.set({ lastTab: tab });
-  }
 }
