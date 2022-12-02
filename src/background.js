@@ -36,11 +36,6 @@ function connect() {
 const openTabs = {};
 
 let trackActiveOnly = true;
-// chrome.storage.sync.remove('activeState');
-if (Object.keys(await chrome.storage.sync.get('activeState')).length === 0) {
-  console.log('setting active state');
-  chrome.storage.sync.set({ activeState: true });
-}
 
 let lastTab;
 
@@ -327,3 +322,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   //  ref: http://stackoverflow.com/questions/20077487/chrome-extension-message-passing-response-not-sent
   return true;
 });
+
+// chrome.storage.sync.remove('activeState');
+if (Object.keys(await chrome.storage.sync.get('activeState')).length === 0) {
+  console.log('setting active state');
+  chrome.storage.sync.set({ activeState: true });
+}
