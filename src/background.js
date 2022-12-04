@@ -218,13 +218,14 @@ async function loadAndStoreLastTab() {
 chrome.idle.setDetectionInterval(15 * 60);
 
 chrome.idle.onStateChanged.addListener(async (newState) => {
+  const tab = await getActiveTab();
+  console.log(tab.audible);
   console.log(newState);
-  if (!lastTab.isAudible) {
+  if (!tab.audible) {
     if (newState === 'idle') {
       recordAndCloseTab(lastTab.tabId, lastTab.windowId);
     }
     if (newState === 'active') {
-      const tab = await getActiveTab();
       lastTab = await createNewTab(tab);
       checkLastTab(lastTab);
       blockedSiteCheck(lastTab);

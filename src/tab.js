@@ -19,7 +19,7 @@ export class Tab {
   // function that will return true/false on if the site is blocked.
   async isBlocked() {
     let domain = getDomain(this.url);
-    let date = this.timeStamp;
+    let date = new Date().toDateString();
     let budgetedTime = this.budget;
     let promise = new Promise((resolve) => {
       if (domain) {
@@ -74,7 +74,7 @@ export class Tab {
     ) {
       // if url does not exist or is in urlIgnoreList or isBlocked, then do nothing
     } else {
-      const fullDate = new Date().toDateString();
+      const fullDate = this.timeStamp;
       // get data from storage for current date
       await chrome.storage.sync.get(fullDate, (res) => {
         if (Object.keys(res).length === 0) {
