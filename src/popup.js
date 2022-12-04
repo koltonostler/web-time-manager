@@ -4,10 +4,12 @@ import './popup.css';
 import { createTodaysChart, createWeeklyChart } from './chart';
 import {
   displayTodayTotalTime,
+  getBudgets,
   getDomain,
   getTimeFormat,
   getTop3,
   getTopSites,
+  getWeeklyAvg,
   storeTodayTotalTime,
   toggleHide,
 } from './calculations';
@@ -24,6 +26,8 @@ let totalTime = todaysChart.config.data.datasets[0].data.reduce(
   0
 );
 
+getWeeklyAvg();
+getBudgets();
 storeTodayTotalTime(totalTime);
 displayTodayTotalTime(totalTime);
 getTop3();
@@ -82,6 +86,7 @@ const dailyBtn = document.querySelector('#daily');
 const weeklyBtn = document.querySelector('#weekly');
 const timeSpan = document.querySelector('.total-time');
 const top3Div = document.querySelector('.top3');
+const weeklyAvg = document.querySelector('.weekly-avg');
 
 dailyBtn.addEventListener('click', async () => {
   if (displayedChart === 'weekly') {
@@ -89,6 +94,7 @@ dailyBtn.addEventListener('click', async () => {
     todaysChart = await createTodaysChart();
     toggleHide(timeSpan);
     toggleHide(top3Div);
+    toggleHide(weeklyAvg);
     displayedChart = 'daily';
   }
 });
@@ -98,6 +104,7 @@ weeklyBtn.addEventListener('click', async () => {
     weeklyChart = await createWeeklyChart();
     toggleHide(timeSpan);
     toggleHide(top3Div);
+    toggleHide(weeklyAvg);
     displayedChart = 'weekly';
   }
 });

@@ -16,6 +16,7 @@ export function getTimeFormat(totalSeconds) {
   }
   return timeFormat;
 }
+
 export function getTimeFormat2(totalSeconds) {
   const hours = Math.floor(totalSeconds / 3600);
   const min = Math.floor((totalSeconds - hours * 3600) / 60);
@@ -31,6 +32,22 @@ export function getTimeFormat2(totalSeconds) {
   } else if (min === 0) {
     timeFormat = `${hours}hr`;
   }
+  return timeFormat;
+}
+
+export function getTimeFormat3(totalSeconds) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const min = Math.floor((totalSeconds - hours * 3600) / 60);
+  let sec = totalSeconds - hours * 3600 - min * 60;
+  sec = Math.round(sec * 100) / 100;
+  sec = sec.toFixed(0);
+  let timeFormat = `${hours}h ${min}m`;
+  if (hours >= 1 && min === 0) {
+    timeFormat = `${hours}h`;
+  } else if (hours < 1) {
+    timeFormat = `${min}m`;
+  }
+
   return timeFormat;
 }
 
@@ -150,4 +167,43 @@ export async function getTopSites() {
   });
 
   return result;
+}
+
+export async function getWeeklyAvg() {
+  const avgContainer = document.querySelector('.weekly-avg');
+
+  const totals = await chrome.storage.sync.get('totals');
+
+  let weeklySum = Object.values(totals['totals']).reduce((a, b) => a + b, 0);
+
+  let weeklyAvg = weeklySum / Object.keys(totals['totals']).length;
+
+  weeklyAvg = getTimeFormat3(weeklyAvg);
+
+  avgContainer.innerHTML = `Daily Average Web Time: ${weeklyAvg}`;
+}
+
+export async function getBudgets() {
+  const budgetContainer = document.querySelector('.budget-container');
+  const today = new Date().toDateString();
+  const todaysData = await chrome.storage.sync.get(today);
+
+  let budgets = await chrome.storage.sync.get('budget');
+  budgets = budgets['budget'];
+  let index = 1;
+
+  for (let domain in budgets) {
+    let newDiv = document.createElement('div');
+    let usedTime = todaysData[today][domain];
+    usedTime = getTimeFormat3(usedTime);
+    let budgetedTime = budgets[domain];
+    budgetedTime = getTimeFormat3(budgetedTime);
+    newDiv.innerHTML = `<div class = budget${index}>
+                            <h2>${domain}</h2>
+                            <span> ${usedTime} / ${budgetedTime}</span>
+                        </div>
+    `;
+    index++;
+    budgetContainer.appendChild(newDiv);
+  }
 }

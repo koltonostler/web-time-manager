@@ -12,6 +12,7 @@
     <div style="width: 400px; height: 400px">
       <div class="daily-chart-container" style="width: 400px">
         <span class="total-time"></span>
+        <div class="weekly-avg hide"></div>
         <canvas id="chart"></canvas>
         <div class="top3 hide"></div>
       </div>
@@ -31,11 +32,14 @@
       <input type="submit" value="set timer" />
     </form>
 
+    <div class="budget-container"></div>
+
     <div class="toggle-container">
       <span class="toggle-text">Only track active tabs</span>
       <input type="checkbox" id="checkbox" />
       <label for="checkbox" class="toggle-switch"> </label>
     </div>
+
     <script src="popup.js"></script>
 
     <!--
