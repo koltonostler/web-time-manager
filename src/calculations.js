@@ -1,8 +1,23 @@
 'use strict';
 
+let hasListener = false;
+export function getHours(seconds) {
+  const hours = Math.floor(seconds / 3600);
+  return hours;
+}
+
+export function getMinute(seconds, hours) {
+  const min = Math.floor((seconds - hours * 3600) / 60);
+  return min;
+}
+
+export function zeroPad(num, places) {
+  return String(num).padStart(places, '0');
+}
+
 export function getTimeFormat(totalSeconds) {
-  const hours = Math.floor(totalSeconds / 3600);
-  const min = Math.floor((totalSeconds - hours * 3600) / 60);
+  const hours = getHours(totalSeconds);
+  const min = getMinute(totalSeconds, hours);
   let sec = totalSeconds - hours * 3600 - min * 60;
   sec = Math.round(sec * 100) / 100;
   sec = sec.toFixed(0);
@@ -18,8 +33,8 @@ export function getTimeFormat(totalSeconds) {
 }
 
 export function getTimeFormat2(totalSeconds) {
-  const hours = Math.floor(totalSeconds / 3600);
-  const min = Math.floor((totalSeconds - hours * 3600) / 60);
+  const hours = getHours(totalSeconds);
+  const min = getMinute(totalSeconds, hours);
   let sec = totalSeconds - hours * 3600 - min * 60;
   sec = Math.round(sec * 100) / 100;
   sec = sec.toFixed(0);
@@ -36,8 +51,8 @@ export function getTimeFormat2(totalSeconds) {
 }
 
 export function getTimeFormat3(totalSeconds) {
-  const hours = Math.floor(totalSeconds / 3600);
-  const min = Math.floor((totalSeconds - hours * 3600) / 60);
+  const hours = getHours(totalSeconds);
+  const min = getMinute(totalSeconds, hours);
   let sec = totalSeconds - hours * 3600 - min * 60;
   sec = Math.round(sec * 100) / 100;
   sec = sec.toFixed(0);
@@ -62,7 +77,7 @@ export function getDomain(url) {
     const domain = new URL(url).hostname;
     return domain;
   } catch (err) {
-    return 'hello';
+    return 'invalid';
   }
 }
 
@@ -183,27 +198,248 @@ export async function getWeeklyAvg() {
   avgContainer.innerHTML = `Daily Average Web Time: ${weeklyAvg}`;
 }
 
+function addCancelListner(btn, popup) {
+  btn.addEventListener('click', () => {
+    closePopup(popup);
+  });
+}
+
+function closePopup(popup) {
+  popup.style.top = '50px';
+  popup.style.opacity = '0';
+  popup.style.zIndex = '-2';
+}
+
+function openPopup(popup) {
+  popup.style.top = '100px';
+  popup.style.opacity = '1';
+  popup.style.zIndex = '2';
+}
+
+function addOpenPopupListner(btn, popup, popupToClose) {
+  btn.addEventListener('click', () => {
+    openPopup(popup);
+    closePopup(popupToClose);
+    const domain = btn.id;
+    populateBudgetedTime(domain);
+  });
+}
+
 export async function getBudgets() {
-  const budgetContainer = document.querySelector('.budget-container');
-  const today = new Date().toDateString();
-  const todaysData = await chrome.storage.sync.get(today);
+  let budgetContainer = document.querySelector('.budget-container');
+  let today = new Date().toDateString();
+  let todaysData = await chrome.storage.sync.get(today);
 
   let budgets = await chrome.storage.sync.get('budget');
   budgets = budgets['budget'];
-  let index = 1;
 
   for (let domain in budgets) {
     let newDiv = document.createElement('div');
     let usedTime = todaysData[today][domain];
-    usedTime = getTimeFormat3(usedTime);
+    if (isNaN(usedTime)) {
+      usedTime = '0m';
+    } else {
+      usedTime = getTimeFormat3(usedTime);
+    }
     let budgetedTime = budgets[domain];
     budgetedTime = getTimeFormat3(budgetedTime);
-    newDiv.innerHTML = `<div class = budget${index}>
-                            <h2>${domain}</h2>
-                            <span> ${usedTime} / ${budgetedTime}</span>
+    newDiv.innerHTML = `<div class ='budget'>
+                            <div class ='budget-name'>${domain}</div>
+                            <div class = "bar-container">
+                                <span class='budget-time'> <b>${usedTime}</b> / ${budgetedTime}</span>
+                                <div class = "budget-bar" id="${domain}-bar"></div>
+                            </div>
+                            <button class="material-symbols-outlined timer" id="${domain}" title="edit timer">timer</button>                                           
                         </div>
     `;
-    index++;
     budgetContainer.appendChild(newDiv);
+  }
+  setupBudgetListeners();
+}
+
+export function setCounterEvents() {
+  const countBtns = document.querySelectorAll('.time-input button');
+  const countTargets = document.querySelectorAll('.time-input div');
+  let slowIndex = 0;
+  countBtns.forEach((btn, index) => {
+    let target = countTargets[slowIndex];
+    addIncDecListner(btn, target, hasListener);
+    if (index % 2 === 1) {
+      slowIndex++;
+    }
+  });
+}
+
+export function setupBudgetListeners() {
+  const editBtns = document.querySelectorAll('.timer');
+  const popup1 = document.querySelector('.budget-popup-1');
+  const popup2 = document.querySelector('.budget-popup-2');
+  const cancelBtn1 = document.querySelector('#cancel-1');
+  const cancelBtn2 = document.querySelector('#cancel-2');
+  const addBtn = document.querySelector('.add');
+
+  editBtns.forEach((btn) => {
+    addOpenPopupListner(btn, popup2, popup1);
+  });
+  addOpenPopupListner(addBtn, popup1, popup2);
+  addCancelListner(cancelBtn2, popup2);
+  addCancelListner(cancelBtn1, popup1);
+}
+
+export function addIncDecListner(btn, target, hasListener) {
+  console.log(hasListener);
+  if (!hasListener) {
+    if (btn.classList.contains('more')) {
+      btn.addEventListener('click', () => {
+        let count = parseInt(target.innerText);
+        count++;
+        if (target.classList.contains('minute-display')) {
+          if (count > 59) {
+            count = 0;
+          }
+        }
+        if (target.classList.contains('hour-display')) {
+          if (count > 24) {
+            count = 0;
+          }
+        }
+        count = zeroPad(count, 2);
+        target.textContent = count;
+      });
+    } else if (btn.classList.contains('less')) {
+      btn.addEventListener('click', () => {
+        let count = parseInt(target.innerText);
+        count--;
+        if (target.classList.contains('minute-display')) {
+          if (count < 0) {
+            count = 59;
+          }
+        }
+        if (target.classList.contains('hour-display')) {
+          if (count < 0) {
+            count = 24;
+          }
+        }
+        count = zeroPad(count, 2);
+        target.textContent = count;
+      });
+    }
+  }
+  hasListener = true;
+}
+
+async function populateBudgetedTime(domain) {
+  let budgets = await chrome.storage.sync.get('budget');
+  budgets = budgets['budget'];
+  const header = document.querySelector('.budget-popup-2 > .popup-header');
+  const hourDiv = document.querySelector('#hour-2');
+  const minDiv = document.querySelector('#min-2');
+  header.innerText = `Set timer for ${domain}`;
+
+  let hour = getHours(budgets[domain]);
+  let min = getMinute(budgets[domain], hour);
+  if (isNaN(hour)) {
+    hour = 0;
+  }
+  if (isNaN(min)) {
+    min = 0;
+  }
+
+  hour = zeroPad(hour, 2);
+  min = zeroPad(min, 2);
+
+  hourDiv.innerText = hour;
+  minDiv.innerText = min;
+}
+
+export function updateBudget() {
+  const popup = document.querySelector('.budget-popup-2');
+  let hourDiv = document.querySelector('#hour-2');
+  let minDiv = document.querySelector('#min-2');
+  const header = document.querySelector('.budget-popup-2 > .popup-header');
+  const budgetContainer = document.querySelector('.budget-container');
+  const headerText = header.innerText;
+
+  let hour = parseInt(hourDiv.innerText);
+  let min = parseInt(minDiv.innerText);
+  let timer = hour * 3600 + min * 60;
+  let domain = headerText.split(' ').pop();
+
+  if (timer === 0) {
+    alert("timer can't be 0");
+  } else {
+    setBudget(domain, timer);
+    closePopup(popup);
+    budgetContainer.innerHTML = '';
+    getBudgets();
+  }
+}
+
+export function saveNewBudget() {
+  const popup = document.querySelector('.budget-popup-1');
+  const budgetContainer = document.querySelector('.budget-container');
+  const urlInput = document.querySelector('#url');
+  let hourDiv = document.querySelector('#hour-1');
+  let minDiv = document.querySelector('#min-1');
+
+  let hour = parseInt(hourDiv.innerText);
+  let min = parseInt(minDiv.innerText);
+
+  let timer = hour * 3600 + min * 60;
+  let url = urlInput.value;
+
+  if (url.indexOf(' ') === -1) {
+    if (url.length === 0) {
+      alert('url cannot be empty');
+    } else if (timer === 0) {
+      alert("timer can't be 0");
+    } else {
+      setBudget(url, timer);
+      closePopup(popup);
+      urlInput.value = '';
+      hourDiv.innerText = '00';
+      minDiv.innerText = '00';
+      budgetContainer.innerHTML = '';
+      getBudgets();
+    }
+  } else {
+    alert('please input a correct url');
+  }
+}
+
+export async function deleteBudget() {
+  console.log('deleted');
+  const popup = document.querySelector('.budget-popup-2');
+  const header = document.querySelector('.budget-popup-2 > .popup-header');
+  const budgetContainer = document.querySelector('.budget-container');
+  const headerText = header.innerText;
+  let domain = headerText.split(' ').pop();
+  let budgetData = await chrome.storage.sync.get('budget');
+  budgetData = budgetData['budget'];
+  delete budgetData[domain];
+  console.log(budgetData);
+  chrome.storage.sync.set({ budget: budgetData });
+  closePopup(popup);
+  budgetContainer.innerHTML = '';
+  getBudgets();
+}
+
+// function that will set the budget with inputs from set-timer form
+function setBudget(url, timer) {
+  // convert input to valid url
+  url = `https://${url}`;
+  let domain = getDomain(url);
+  if (domain !== 'invalid') {
+    chrome.storage.sync.get('budget', (res) => {
+      // if domain does not already have data, just set the budget
+      if (Object.keys(res).length === 0) {
+        chrome.storage.sync.set({ budget: { [domain]: timer } });
+      } else {
+        // if the domain already has data, we need to add the 'budget' key with the new budget as the value
+        let newData = res['budget'];
+        newData[domain] = timer;
+        chrome.storage.sync.set({ budget: newData });
+      }
+    });
   }
 }

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
 body {
   height: auto;
   width: auto;
@@ -81,6 +83,217 @@ button {
   justify-content: center;
   align-items: center;
   font-size: 1.75rem;
+}
+
+.budget-display {
+  width: 100%;
+}
+
+.add-budget {
+  display: flex;
+  justify-content: center;
+}
+
+.add {
+  cursor: pointer;
+  border: 2px solid rgba(71, 71, 71);
+  padding: 0.25rem;
+  color: rgba(71, 71, 71);
+  border-radius: 20px;
+  transition: 250ms ease;
+}
+
+.add:hover {
+  background-color: rgba(71, 71, 71);
+  color: white;
+}
+
+.budget-container {
+  width: 100%;
+}
+
+.budget {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 80%;
+  margin: 1rem;
+}
+
+.budget-bar {
+  width: 125px;
+  height: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(71, 71, 71, 0.528);
+  background-color: transparent;
+}
+
+.bar-container {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+}
+
+.less,
+.more {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 40px;
+  transition: 150ms linear;
+  transform: scaleX(150%);
+  color: rgba(255, 255, 255, 0.168);
+}
+
+.less:hover {
+  transform: translateY(-5px) scaleY(150%) scaleX(200%);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.more:hover {
+  transform: translateY(5px) scaleY(150%) scaleX(200%);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.options-toolbar {
+  width: 75%;
+  display: flex;
+  justify-content: space-around;
+}
+
+.options-toolbar > button {
+  cursor: pointer;
+  color: white;
+  background-color: transparent;
+  outline: none;
+  border: none;
+  font-size: 16px;
+  transition: 150ms ease;
+}
+
+.options-toolbar > button:hover {
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.6);
+  background-color: transparent;
+  outline: none;
+  border: none;
+  font-size: 16px;
+}
+
+.options-divider {
+  width: 1px;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.168);
+}
+
+.budget-popup-1,
+.budget-popup-2 {
+  width: 100%;
+  height: 16rem;
+  background-color: #242424;
+  border-radius: 10px;
+  color: white;
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+  opacity: 0;
+  z-index: -2;
+}
+
+.budget-popup-1 > .options-toolbar {
+  width: 50%;
+}
+
+.budget-popup-1 > .time-inputs {
+  margin: 1.5rem 0;
+}
+
+.budget-popup-1 {
+  height: 20rem;
+  width: 29rem;
+  position: fixed;
+  top: 50px;
+  transition: 250ms ease;
+}
+
+.budget-popup-2 {
+  width: 29rem;
+  position: fixed;
+  top: 50px;
+  transition: 250ms ease;
+}
+
+.budget-header {
+  margin-bottom: 1rem;
+  font-size: 20px;
+}
+
+#url {
+  padding-left: 0.5rem;
+  margin-left: 1rem;
+  color: white;
+  background-color: transparent;
+  height: 100%;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+  font-size: 20px;
+}
+
+#url:focus {
+  outline: none;
+  border-bottom: 2px solid white;
+}
+
+.url-container {
+  font-size: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem;
+}
+
+.timer {
+  padding-top: 10px;
+  position: absolute;
+  right: 100px;
+  font-size: 25px;
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+  color: rgba(51, 51, 51, 0.794);
+  transition: 200ms ease;
+}
+
+.timer:hover {
+  color: rgb(45, 45, 45);
+}
+
+.time-inputs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 75%;
+  height: 8rem;
+
+  font-size: 45px;
+}
+
+.popup-header {
+  font-size: 24px;
+}
+
+.hour,
+.minute {
+  height: 100%;
+  width: 5rem;
+  padding: 0 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
 }
 
 .hide {

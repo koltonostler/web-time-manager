@@ -17,22 +17,80 @@
         <div class="top3 hide"></div>
       </div>
     </div>
-    <form action="submit" id="timer-form">
+
+    <div class="budget-display">
+      <h2 class="budget-header">Website Timers</h2>
+      <div class="budget-container"></div>
+      <div class="add-budget">
+        <div class="material-symbols-outlined add" title="add new timer">
+          add
+        </div>
+      </div>
+    </div>
+    <div class="budget-popup-1">
+      <div class="popup-header">Create timer for:</div>
       <div class="url-container">
         <span>https://</span>
         <input type="text" name="url" id="url" placeholder="url" />
       </div>
-      <input
-        type="number"
-        min="0"
-        id="timer"
-        name="timer"
-        placeholder="set timer for website"
-      />
-      <input type="submit" value="set timer" />
-    </form>
-
-    <div class="budget-container"></div>
+      <div class="time-inputs">
+        <div class="time-input hour">
+          <button class="material-symbols-outlined more" id="more-hr-1">
+            expand_less
+          </button>
+          <div class="hour-display" id="hour-1">00</div>
+          <button class="material-symbols-outlined less" id="less-hr-1">
+            expand_more
+          </button>
+        </div>
+        <div>:</div>
+        <div class="time-input minute">
+          <button class="material-symbols-outlined more" id="more-min-1">
+            expand_less
+          </button>
+          <div class="minute-display" id="min-1">00</div>
+          <button class="material-symbols-outlined less" id="less-min-1">
+            expand_more
+          </button>
+        </div>
+      </div>
+      <div class="options-toolbar">
+        <button class="cancel" id="cancel-1">Cancel</button>
+        <div class="options-divider"></div>
+        <button class="save" id="save-1">Save</button>
+      </div>
+    </div>
+    <div class="budget-popup-2">
+      <div class="popup-header"></div>
+      <div class="time-inputs">
+        <div class="time-input hour">
+          <button class="material-symbols-outlined more" id="more-hr-2">
+            expand_less
+          </button>
+          <div class="hour-display" id="hour-2">00</div>
+          <button class="material-symbols-outlined less" id="less-hr-2">
+            expand_more
+          </button>
+        </div>
+        <div>:</div>
+        <div class="time-input minute">
+          <button class="material-symbols-outlined more" id="more-min-2">
+            expand_less
+          </button>
+          <div class="minute-display" id="min-2">00</div>
+          <button class="material-symbols-outlined less" id="less-min-2">
+            expand_more
+          </button>
+        </div>
+      </div>
+      <div class="options-toolbar">
+        <button class="cancel" id="cancel-2">Cancel</button>
+        <div class="options-divider"></div>
+        <button class="delete" id="delete">Delete</button>
+        <div class="options-divider"></div>
+        <button class="save" id="save-2">Save</button>
+      </div>
+    </div>
 
     <div class="toggle-container">
       <span class="toggle-text">Only track active tabs</span>
