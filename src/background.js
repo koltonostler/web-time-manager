@@ -134,9 +134,9 @@ async function blockedSiteCheck(tab) {
         if (
           Object.keys(res).length === 0 ||
           Object.keys(res[date]).length === 0 ||
-          budgetedTime === null
+          res[date][domain] === undefined
         ) {
-          resolve(false);
+          resolve(0);
           return;
         }
         const domainTime = res[date][domain];
