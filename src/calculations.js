@@ -131,12 +131,24 @@ export async function getTop3() {
     const parent = document.querySelector('.top3');
 
     const newDiv = document.createElement('div');
+    newDiv.classList.add('top3-info');
 
-    const content = document.createTextNode(
-      `${index + 1}. ${top3[index][0]} - ${getTimeFormat(top3[index][1])}`
+    const titleDiv = document.createElement('div');
+    const timeDiv = document.createElement('div');
+
+    const titleContent = document.createTextNode(
+      `${index + 1}. ${top3[index][0]}`
+    );
+    const timeContent = document.createTextNode(
+      `${getTimeFormat(top3[index][1])}`
     );
 
-    newDiv.appendChild(content);
+    titleDiv.appendChild(titleContent);
+    timeDiv.appendChild(timeContent);
+    timeDiv.style.fontWeight = '700';
+
+    newDiv.insertAdjacentElement('beforeEnd', titleDiv);
+    newDiv.insertAdjacentElement('beforeEnd', timeDiv);
 
     parent.insertAdjacentElement('beforeEnd', newDiv);
   });
@@ -186,6 +198,7 @@ export async function getTopSites() {
 
 export async function getWeeklyAvg() {
   const avgContainer = document.querySelector('.weekly-avg');
+  const weeklyStatsContainer = document.querySelector('.weekly-stats');
 
   const totals = await chrome.storage.sync.get('totals');
 
@@ -195,7 +208,7 @@ export async function getWeeklyAvg() {
 
   weeklyAvg = getTimeFormat3(weeklyAvg);
 
-  avgContainer.innerHTML = `Daily Average Web Time: ${weeklyAvg}`;
+  avgContainer.innerHTML = `${weeklyAvg}`;
 }
 
 function addCancelListner(btn, popup) {
@@ -232,7 +245,7 @@ export async function getBudgets() {
 
   let budgets = await chrome.storage.sync.get('budget');
   budgets = budgets['budget'];
-
+  let index = 0;
   for (let domain in budgets) {
     let newDiv = document.createElement('div');
     let usedTime = todaysData[today][domain];
@@ -247,14 +260,43 @@ export async function getBudgets() {
                             <div class ='budget-name'>${domain}</div>
                             <div class = "bar-container">
                                 <span class='budget-time'> <b>${usedTime}</b> / ${budgetedTime}</span>
-                                <div class = "budget-bar" id="${domain}-bar"></div>
+                                <div class = "budget-bar" id="bar-${index}"></div>
                             </div>
                             <button class="material-symbols-outlined timer" id="${domain}" title="edit timer">timer</button>                                           
                         </div>
     `;
     budgetContainer.appendChild(newDiv);
+    createBarCss(index, todaysData[today][domain], budgets[domain]);
+    index++;
   }
   setupBudgetListeners();
+}
+
+function createBarCss(index, usedTime, totalTime) {
+  const colorOptions = [
+    'rgb(54, 162, 235)',
+    'rgb(153, 102, 255)',
+    'rgb(255, 205, 86)',
+    'rgb(255, 99, 132)',
+    'rgb(201, 203, 207)',
+    'rgb(255, 159, 64)',
+    'rgb(75, 192, 192)',
+  ];
+  // get bar I want to change
+  const budgetBar = document.querySelector(`#bar-${index}`);
+  // if budget is hit make background color red;
+  if (usedTime >= totalTime) {
+    budgetBar.style.backgroundColor = '#ff2222';
+  } else {
+    // get fraction of usedTime of totalTime
+    let budgetFraction = usedTime / totalTime;
+    let percentage = budgetFraction * 100 + '%';
+    let transparentPercentage = (budgetFraction + 0.01) * 100 + '%';
+    // set a gradient with the correct percentages
+    budgetBar.style.backgroundImage = `linear-gradient(to right, ${
+      colorOptions[index % 6]
+    } ${percentage}, transparent ${transparentPercentage})`;
+  }
 }
 
 export function setCounterEvents() {
@@ -287,7 +329,6 @@ export function setupBudgetListeners() {
 }
 
 export function addIncDecListner(btn, target, hasListener) {
-  console.log(hasListener);
   if (!hasListener) {
     if (btn.classList.contains('more')) {
       btn.addEventListener('click', () => {

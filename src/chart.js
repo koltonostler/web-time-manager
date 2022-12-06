@@ -90,6 +90,9 @@ export async function createTodaysChart() {
     };
 
     const options = {
+      layout: {
+        padding: 10,
+      },
       plugins: {
         legend: {
           display: true,

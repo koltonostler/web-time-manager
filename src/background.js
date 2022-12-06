@@ -171,7 +171,6 @@ async function checkLastTab(tab) {
     // dont record last tab if it is in the ignore list
     if (urlIgnoreList.includes(getDomain(tab.url))) {
     } else {
-      console.log(true);
       chrome.scripting.executeScript({
         target: { tabId: tab.tabId },
         func: addCloseListener,
@@ -259,7 +258,6 @@ chrome.tabs.onRemoved.addListener(async (tabId, info) => {
     checkLastTab(lastTab);
   } else {
     //  if the removed tab is not the active tab
-    console.log(tabId, lastTab.tabId);
     if (tabId !== lastTab.tabId) {
       checkLastTab(lastTab);
     } else {

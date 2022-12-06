@@ -7,24 +7,38 @@
   </head>
   <body>
     <h1>Web Time Manager</h1>
-    <button id="daily" class="chart-btn">Today's Summary</button>
-    <button id="weekly" class="chart-btn">Weekly Summary</button>
+    <div class="chart-buttons">
+      <button id="daily" class="chart-btn active-chart">Today's Summary</button>
+      <button id="weekly" class="chart-btn">Weekly Summary</button>
+    </div>
     <div style="width: 400px; height: 400px">
-      <div class="daily-chart-container" style="width: 400px">
+      <div class="daily-chart-container" style="width: 410px">
         <span class="total-time"></span>
-        <div class="weekly-avg hide"></div>
+        <div class="weekly-stats hide">
+          <div class="material-symbols-outlined schedule">schedule</div>
+          <div class="weekly-avg"></div>
+          <div>Daily average web time</div>
+        </div>
         <canvas id="chart"></canvas>
-        <div class="top3 hide"></div>
+        <div class="top3-container hide">
+          <div class="top3-header">Top websites this week</div>
+          <div class="top3-divider"></div>
+          <div class="top3"></div>
+        </div>
       </div>
     </div>
 
     <div class="budget-display">
-      <h2 class="budget-header">Website Timers</h2>
-      <div class="budget-container"></div>
-      <div class="add-budget">
-        <div class="material-symbols-outlined add" title="add new timer">
-          add
+      <div class="header-container">
+        <h2 class="budget-header">Timers</h2>
+        <div class="add-budget">
+          <div class="material-symbols-outlined add" title="add new timer">
+            add
+          </div>
         </div>
+      </div>
+      <div class="budget-content">
+        <div class="budget-container"></div>
       </div>
     </div>
     <div class="budget-popup-1">
@@ -92,7 +106,7 @@
       </div>
     </div>
 
-    <div class="toggle-container">
+    <div class="toggle-container hide">
       <span class="toggle-text">Only track active tabs</span>
       <input type="checkbox" id="checkbox" />
       <label for="checkbox" class="toggle-switch"> </label>

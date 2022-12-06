@@ -61,11 +61,22 @@ chrome.runtime.sendMessage({ msg: 'getActiveState' }, function (response) {
 const dailyBtn = document.querySelector('#daily');
 const weeklyBtn = document.querySelector('#weekly');
 const timeSpan = document.querySelector('.total-time');
-const top3Div = document.querySelector('.top3');
-const weeklyAvg = document.querySelector('.weekly-avg');
+const top3Div = document.querySelector('.top3-container');
+const weeklyAvg = document.querySelector('.weekly-stats');
 const deleteBtn = document.querySelector('#delete');
 const newSaveBtn = document.querySelector('#save-1');
 const updateBudgetBtn = document.querySelector('#save-2');
+const dailyChartBtn = document.querySelector('#daily');
+const weeklyChartBtn = document.querySelector('#weekly');
+
+dailyChartBtn.addEventListener('click', () => {
+  dailyChartBtn.classList.add('active-chart');
+  weeklyChartBtn.classList.remove('active-chart');
+});
+weeklyChartBtn.addEventListener('click', () => {
+  weeklyChartBtn.classList.add('active-chart');
+  dailyChartBtn.classList.remove('active-chart');
+});
 
 dailyBtn.addEventListener('click', async () => {
   if (displayedChart === 'weekly') {
