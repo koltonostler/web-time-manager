@@ -1,5 +1,5 @@
 import { Tab, urlIgnoreList } from './tab';
-import { getDomain } from './calculations';
+import { getDomain, getTimeFormat3 } from './calculations';
 
 const onUpdate = (tabId, info, tab) =>
   /^https?:/.test(info.url) && findTab([tab]);
@@ -95,20 +95,59 @@ async function getActiveState() {
 }
 
 function blockSite(budget, url) {
-  document.body.innerHTML = `<h1 class='block'> ${url} is blocked!!! </h1>
-                                <p>You have exceeded your budget of ${
-                                  budget / 60
-                                } min.</p>  
-    
+  document.body.innerHTML = `
+  <div class="block">
+      <span style='font-size:150px; position: absolute; top: 100px'>&#9201;</span>
+      <h1> Time's Up!!! </h1>
+      <div style='font-size: 100px; margin-bottom: 1rem'>${budget}</div>
+      <p>You have used all your time for <b>${url}</b> today.</p>   
+      <p>You can access this website tomorrow or you can change the timer in the Web Time Manager chrome extension.</p>   
+  </div>
     `;
 }
 
-const blockPageCss =
-  'body {background-color: black !important; color: white !important}';
+const blockPageCss = `
+* {
+  font-family: 'Arial' !important;
+}
+
+h1 {
+    color: #ddd !important;
+    font-size: 60px !important;
+    font-weight: 400 !important;
+}
+
+body {
+    background-color: #222 !important; 
+    color: #ddd !important; 
+    height: 100vh !important; 
+    width: 100% !important;
+}
+
+body > * {
+    margin: 0 !important;
+}
+
+b {
+    color: rgb(54, 162, 235) !important;
+}
+.block {
+    width: 100% !important;
+    height: 100vh !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    flex-direction: column;
+    font-size: 20px !important;
+}
+  
+  `;
 
 let timeoutIds = [];
 
 async function blockedSiteCheck(tab) {
+  let budget = getTimeFormat3(tab.budget);
+  let url = getDomain(tab.url);
   for (let index in timeoutIds) {
     clearTimeout(timeoutIds[index]);
     timeoutIds.splice(index, 1);
@@ -117,7 +156,7 @@ async function blockedSiteCheck(tab) {
     chrome.scripting.executeScript({
       target: { tabId: tab.tabId },
       func: blockSite,
-      args: [tab.budget, tab.url],
+      args: [budget, url],
     });
     chrome.scripting.insertCSS({
       target: { tabId: tab.tabId },
