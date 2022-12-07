@@ -105,18 +105,28 @@ export function getLastWeek(startingDate) {
   return lastWeekDates;
 }
 
-export function storeTodayTotalTime(totalTime) {
+export async function getTotalTimes() {
   let today = new Date().toDateString();
-  // set the total time for today in seconds whenever you open the popup
-  chrome.storage.sync.get('totals', (res) => {
-    if ('totals' in res) {
-      let newData = res['totals'];
-      newData[today] = totalTime;
-      chrome.storage.sync.set({ totals: newData });
+  const lastWeek = getLastWeek(today);
+
+  for (let day in lastWeek) {
+    const date = lastWeek[day].fullDate.toDateString();
+    let totalsData = await chrome.storage.sync.get('totals');
+    let data = await chrome.storage.sync.get(date);
+    if (Object.keys(data) === 0) {
+      console.log(`no data for ${date}`);
     } else {
-      chrome.storage.sync.set({ totals: { [today]: totalTime } });
+      data = data[date];
+      const dateSum = Object.values(data).reduce((a, b) => a + b, 0);
+      if (Object.keys(totalsData) === 0) {
+        chrome.storage.sync.set({ totals: { [date]: dateSum } });
+      } else {
+        let newData = totalsData['totals'];
+        newData[date] = dateSum;
+        chrome.storage.sync.set({ totals: newData });
+      }
     }
-  });
+  }
 }
 
 export async function getTop3() {
@@ -198,7 +208,6 @@ export async function getTopSites() {
 
 export async function getWeeklyAvg() {
   const avgContainer = document.querySelector('.weekly-avg');
-  const weeklyStatsContainer = document.querySelector('.weekly-stats');
 
   const totals = await chrome.storage.sync.get('totals');
 

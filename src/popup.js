@@ -6,15 +6,12 @@ import {
   deleteBudget,
   displayTodayTotalTime,
   getBudgets,
-  getDomain,
-  getTimeFormat,
   getTop3,
-  getTopSites,
+  getTotalTimes,
   getWeeklyAvg,
   saveNewBudget,
   setCounterEvents,
   setupBudgetListeners,
-  storeTodayTotalTime,
   toggleHide,
   updateBudget,
 } from './calculations';
@@ -35,14 +32,14 @@ getWeeklyAvg();
 getBudgets();
 setupBudgetListeners();
 setCounterEvents();
-storeTodayTotalTime(totalTime);
+getTotalTimes();
 displayTodayTotalTime(totalTime);
 getTop3();
 
 let toggleActive = { trackActive: true };
 
 function saveActiveState() {
-  chrome.storage.sync.set({ ['activeState']: toggleActive.trackActive });
+  chrome.storage.sync.set({ activeState: toggleActive.trackActive });
 }
 
 const toggle = document.getElementById('checkbox');

@@ -97,7 +97,7 @@ async function getActiveState() {
 function blockSite(budget, url) {
   document.body.innerHTML = `
   <div class="block">
-      <span style='font-size:150px; position: absolute; top: 100px'>&#9201;</span>
+      <span style='font-size:120px;'>&#9201;</span>
       <h1> Time's Up!!! </h1>
       <div style='font-size: 100px; margin-bottom: 1rem'>${budget}</div>
       <p>You have used all your time for <b>${url}</b> today.</p>   
@@ -243,11 +243,9 @@ async function loadAndStoreLastTab() {
     lastOpenTab.isAudible,
     lastOpenTab.budget
   );
-
   tabToStore.start = lastOpenTab.start;
   tabToStore.end = lastOpenTab.end;
   tabToStore.timeStamp = lastOpenTab.timeStamp;
-
   tabToStore.calcTimeOpen();
 }
 
@@ -310,6 +308,7 @@ chrome.tabs.onRemoved.addListener(async (tabId, info) => {
     }
   }
 });
+
 // listener for changing tabs and then will close previous tab and set new current tab to active tab.
 chrome.tabs.onActivated.addListener(async (tabInfo) => {
   // check to see if trackActiveOnly is toggled on
@@ -350,7 +349,6 @@ chrome.windows.onCreated.addListener(async () => {
 
 chrome.runtime.onInstalled.addListener((details) => {
   chrome.storage.sync.set({ budget: {} });
-  chrome.storage.sync.set({ totals: {} });
 });
 
 // function that validates if url is valid and returns the full domain from url
