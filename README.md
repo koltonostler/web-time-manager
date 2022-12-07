@@ -1,6 +1,6 @@
-# <img src="public/icons/icon_48.png" width="45" align="left"> Test Time Manager
+# <img src="public/icons/icon_48.png" width="45" align="left"> Web Time Manager
 
-My Chrome Extension
+
 
 ## Features
 
