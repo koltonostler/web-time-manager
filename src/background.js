@@ -348,6 +348,11 @@ chrome.windows.onCreated.addListener(async () => {
   trackActiveOnly = await getActiveState();
 });
 
+chrome.runtime.onInstalled.addListener((details) => {
+  chrome.storage.sync.set({ budget: {} });
+  chrome.storage.sync.set({ totals: {} });
+});
+
 // function that validates if url is valid and returns the full domain from url
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
