@@ -33,16 +33,6 @@ function connect() {
     .onDisconnect.addListener(connect);
 }
 
-const openTabs = {};
-
-let trackActiveOnly = true;
-
-let lastTab;
-
-let tabIntervalKeys = {};
-
-let tabToTrack;
-
 async function getBudget(url) {
   const domain = getDomain(url);
   if (domain) {
@@ -70,33 +60,6 @@ async function getActiveTabs() {
   let tabs = await chrome.tabs.query(queryOptions);
 
   return tabs;
-}
-
-async function createNewTab(tab) {
-  let budget = await getBudget(tab.url);
-  let currentTab = new Tab(
-    tab.id,
-    tab.windowId,
-    tab.url,
-    tab.favIconUrl,
-    tab.audible,
-    budget
-  );
-  openTabs[tab.id] = currentTab;
-  return currentTab;
-}
-// function that will record the tab and delete it from the openTabs object
-function recordAndCloseTab(tabId, windowId) {
-  if (tabId in openTabs && openTabs[tabId].windowId === windowId) {
-    openTabs[tabId].setCloseTime();
-    delete openTabs[tabId];
-  }
-}
-
-async function getActiveState() {
-  let activeState = await chrome.storage.local.get('activeState');
-
-  return activeState.activeState;
 }
 
 function blockSite(budget, url) {
@@ -208,76 +171,6 @@ async function blockedSiteCheck(tab) {
   }
 }
 
-async function checkLastTab(tab) {
-  let allTabs = await chrome.tabs.query({});
-
-  if (allTabs.length === 1) {
-    // dont record last tab if it is in the ignore list
-    if (urlIgnoreList.includes(getDomain(tab.url))) {
-    } else {
-      chrome.scripting.executeScript({
-        target: { tabId: tab.tabId },
-        func: addCloseListener,
-        args: [tab],
-      });
-    }
-  } else {
-  }
-}
-
-async function addCloseListener(tab) {
-  let onBeforeUnLoadEvent = false;
-
-  window.onunload = window.onbeforeunload = function () {
-    if (!onBeforeUnLoadEvent) {
-      onBeforeUnLoadEvent = true;
-      tab['end'] = Date.now();
-      chrome.storage.local.set({ lastTab: tab });
-    }
-  };
-}
-
-async function loadAndStoreLastTab() {
-  let lastOpenTab = await chrome.storage.local.get('lastTab');
-  lastOpenTab = lastOpenTab['lastTab'];
-  let tabToStore = new Tab(
-    lastOpenTab.tabId,
-    lastOpenTab.windowId,
-    lastOpenTab.url,
-    lastOpenTab.icon,
-    lastOpenTab.isAudible,
-    lastOpenTab.budget
-  );
-  tabToStore.start = lastOpenTab.start;
-  tabToStore.end = lastOpenTab.end;
-  tabToStore.timeStamp = lastOpenTab.timeStamp;
-  tabToStore.calcTimeOpen();
-}
-
-// async function updateTime(tab) {
-//   let today = new Date().toDateString();
-//   let url = getDomain(tab.url);
-//   if (urlIgnoreList.includes(url) || url === 'invalid') {
-//     // do nothing
-//   } else {
-//     let todaysData = await chrome.storage.local.get([today]);
-//     if (Object.keys(todaysData).length === 0) {
-//       chrome.storage.local.set({ [today]: { [url]: 1 } });
-//     } else {
-//       todaysData = todaysData[today];
-//       let currentTime = todaysData[url];
-//       if (currentTime !== undefined) {
-//         currentTime++;
-//         todaysData[url] = currentTime;
-//       } else {
-//         todaysData[url] = 1;
-//       }
-//       chrome.storage.local.set({ [today]: todaysData });
-//       console.log(url, currentTime);
-//     }
-//   }
-// }
-
 function deleteTodaysData() {
   let today = new Date().toDateString();
   chrome.storage.local.remove([today]);
@@ -309,26 +202,21 @@ async function storeTabs(activeTabs) {
   }
 }
 
-function startTrackingTab(tab) {
-  let intervalKey = setInterval(() => {
-    updateTime(tab);
-  }, 1000);
-
-  tabIntervalKeys[tab.tabId] = intervalKey;
-}
-
-function stopTrackingTab(tab) {
-  clearInterval(tabIntervalKeys[tab.tabId]);
-  delete tabIntervalKeys[tab.tabId];
-
-  delete openTabs[tab.tabId];
-}
-
 setInterval(async () => {
   let activeTabs = await getActiveTabs();
 
   storeTabs(activeTabs);
 }, 1000);
+
+let trackActiveOnly = true;
+
+async function getActiveState() {
+  let activeState = await chrome.storage.local.get('activeState');
+
+  return activeState.activeState;
+}
+
+trackActiveOnly = await getActiveState();
 
 /*   TAB LISTENERS   */
 
@@ -353,132 +241,9 @@ chrome.idle.onStateChanged.addListener(async (newState) => {
   //   }
 });
 
-// // add Listener for page update
-// chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-//   //   if (lastTab !== undefined) {
-//   //     if (changeInfo.status === 'complete' && lastTab.tabId === tabId) {
-//   //       recordAndCloseTab(tabId, tab.windowId);
-//   //       lastTab = await createNewTab(tab);
-//   //       checkLastTab(lastTab);
-//   //       blockedSiteCheck(lastTab);
-//   //     }
-//   //   } else {
-//   //     if (changeInfo.status === 'complete') {
-//   //       recordAndCloseTab(tabId, tab.windowId);
-//   //       lastTab = await createNewTab(tab);
-//   //       checkLastTab(lastTab);
-//   //       blockedSiteCheck(lastTab);
-//   //     }
-//   //   }
-
-//   if (tabToTrack !== undefined) {
-//     if (changeInfo.status === 'complete' && tabToTrack.tabId === tabId) {
-//       stopTrackingTab(tabToTrack);
-
-//       tabToTrack = await createNewTab(tab);
-//       startTrackingTab(tabToTrack);
-
-//       console.log('updated');
-//     }
-//   }
-// });
-
-// // listener for closing a tab to setCloseTime only if the closed tab is the active tab
-// chrome.tabs.onRemoved.addListener(async (tabId, info) => {
-//   if (tabId in openTabs) {
-//     stopTrackingTab(openTabs[tabId]);
-//   }
-//   console.log('removed');
-// });
-
-// chrome.tabs.onAttached.addListener((tabId, attachInfo) => {
-//   chrome.tabs.query({ windowId: attachInfo.newWindowId }, (tabs) => {
-//     for (let tab of tabs) {
-//       if (tab.id in openTabs) {
-//         stopTrackingTab(openTabs[tab.id]);
-//       }
-//     }
-//   });
-// });
-
-// // listener for changing tabs and then will close previous tab and set new current tab to active tab.
-// chrome.tabs.onActivated.addListener(async (tabInfo) => {
-//   // check to see if trackActiveOnly is toggled on
-//   //   if (trackActiveOnly) {
-//   //     // check to make sure there is a tab to close
-//   //     if (lastTab !== undefined) {
-//   //       // record and close tab
-//   //       recordAndCloseTab(lastTab.tabId, tabInfo.windowId);
-//   //     }
-//   //   }
-//   //   // check to see if tab was already open
-//   //   if (tabInfo.tabId in openTabs) {
-//   //     recordAndCloseTab(tabInfo.tabId, tabInfo.windowId);
-//   //   }
-//   // let activeTab = await getActiveTab();
-
-//   //   lastTab = await createNewTab(activeTab);
-//   //   checkLastTab(lastTab);
-//   //   blockedSiteCheck(lastTab);
-
-//   let focusedWindow = await chrome.windows.getLastFocused();
-//   if (tabToTrack !== undefined && focusedWindow.id === tabToTrack.windowId) {
-//     stopTrackingTab(tabToTrack);
-//   }
-
-//   //   if (tabInfo.tabId in openTabs) {
-//   //     stopTrackingTab(openTabs[tabInfo.tabId]);
-//   //   }
-//   let newTab = await chrome.tabs.get(tabInfo.tabId);
-//   console.log(newTab.url);
-//   //   if (newTab.id in openTabs) {
-//   //     //do nothing
-//   //   } else {
-//   tabToTrack = await createNewTab(newTab);
-//   startTrackingTab(tabToTrack);
-
-//   console.log('activated');
-//   //   }
-// });
-
-// chrome.windows.onCreated.addListener(async () => {
-//   //   for (let index in timeoutIds) {
-//   //     clearTimeout(timeoutIds[index]);
-//   //     timeoutIds.splice(index, 1);
-//   //   }
-//   //   console.log('on window created listener');
-//   //   let allWindows = await chrome.windows.getAll();
-//   //   if (allWindows.length === 1) {
-//   //     loadAndStoreLastTab();
-//   //   }
-//   //   let activeTabs = await getActiveTabs();
-//   //   activeTabs.forEach(async (tab) => {
-//   //     await createNewTab(tab);
-//   //   });
-//   //   trackActiveOnly = await getActiveState();
-//   //   let allWindows = await chrome.windows.getAll();
-//   //   if (allWindows.length === 1) {
-//   //     loadAndStoreLastTab();
-//   //   }
-//   //   for (let tab in openTabs) {
-//   //     stopTrackingTab(openTabs[tab]);
-//   //   }
-//   //   let activeTabs = await getActiveTabs();
-//   //   activeTabs.forEach(async (tab) => {
-//   //     if (!(tab.id in openTabs)) {
-//   //       tabToTrack = await createNewTab(tab);
-//   //       startTrackingTab(tabToTrack);
-//   //     }
-//   //   });
-//   //   console.log('on window created listener');
-//   // trackActiveOnly = await getActiveState();
-// });
-
 chrome.runtime.onInstalled.addListener((details) => {
   chrome.storage.local.set({ budget: {} });
 });
-
-// function that validates if url is valid and returns the full domain from url
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if ('trackActive' in request) {
