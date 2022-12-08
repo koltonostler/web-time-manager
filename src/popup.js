@@ -23,37 +23,40 @@ let displayedChart = 'daily';
 // create today's doughnut chart
 todaysChart = await createTodaysChart();
 
-let totalTime = todaysChart.config.data.datasets[0].data.reduce(
-  (a, b) => a + b,
-  0
-);
+if (todaysChart !== null) {
+  let totalTime = todaysChart.config.data.datasets[0].data.reduce(
+    (a, b) => a + b,
+    0
+  );
+
+  displayTodayTotalTime(totalTime);
+}
 
 getWeeklyAvg();
 getBudgets();
 setupBudgetListeners();
 setCounterEvents();
 getTotalTimes();
-displayTodayTotalTime(totalTime);
 getTop3();
 
-let toggleActive = { trackActive: true };
+// let toggleActive = { trackActive: true };
 
-function saveActiveState() {
-  chrome.storage.sync.set({ activeState: toggleActive.trackActive });
-}
+// function saveActiveState() {
+//   chrome.storage.local.set({ activeState: toggleActive.trackActive });
+// }
 
-const toggle = document.getElementById('checkbox');
+// const toggle = document.getElementById('checkbox');
 
-toggle.addEventListener('change', () => {
-  toggleActive.trackActive = !toggleActive.trackActive;
-  saveActiveState();
-  chrome.runtime.sendMessage(toggleActive);
-});
+// toggle.addEventListener('change', () => {
+//   toggleActive.trackActive = !toggleActive.trackActive;
+//   saveActiveState();
+//   chrome.runtime.sendMessage(toggleActive);
+// });
 
-chrome.runtime.sendMessage({ msg: 'getActiveState' }, function (response) {
-  toggleActive.trackActive = response.activeState;
-  toggle.checked = toggleActive.trackActive;
-});
+// chrome.runtime.sendMessage({ msg: 'getActiveState' }, function (response) {
+//   toggleActive.trackActive = response.activeState;
+//   toggle.checked = toggleActive.trackActive;
+// });
 
 const dailyBtn = document.querySelector('#daily');
 const weeklyBtn = document.querySelector('#weekly');

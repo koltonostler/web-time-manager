@@ -67,7 +67,7 @@ export function getTimeFormat3(totalSeconds) {
 }
 
 export async function getAllData() {
-  const response = await chrome.storage.sync.get(null);
+  const response = await chrome.storage.local.get(null);
   return response;
 }
 
@@ -105,25 +105,29 @@ export function getLastWeek(startingDate) {
   return lastWeekDates;
 }
 
+export function test() {
+  chrome.storage.local.set({ totals: 'this is a test' });
+}
+
 export async function getTotalTimes() {
   let today = new Date().toDateString();
   const lastWeek = getLastWeek(today);
 
   for (let day in lastWeek) {
     const date = lastWeek[day].fullDate.toDateString();
-    let totalsData = await chrome.storage.sync.get('totals');
-    let data = await chrome.storage.sync.get(date);
-    if (Object.keys(data) === 0) {
+    let totalsData = await chrome.storage.local.get('totals');
+    let data = await chrome.storage.local.get(date);
+    if (Object.keys(data).length === 0) {
       console.log(`no data for ${date}`);
     } else {
       data = data[date];
       const dateSum = Object.values(data).reduce((a, b) => a + b, 0);
-      if (Object.keys(totalsData) === 0) {
-        chrome.storage.sync.set({ totals: { [date]: dateSum } });
+      if (Object.keys(totalsData).length === 0) {
+        chrome.storage.local.set({ totals: { [date]: dateSum } });
       } else {
         let newData = totalsData['totals'];
         newData[date] = dateSum;
-        chrome.storage.sync.set({ totals: newData });
+        chrome.storage.local.set({ totals: newData });
       }
     }
   }
@@ -134,12 +138,14 @@ export async function getTop3() {
   let top3 = [];
 
   for (let i = orderedSites.length - 1; i > orderedSites.length - 4; i--) {
-    top3.push(orderedSites[i]);
+    if (orderedSites[i] !== undefined) {
+      top3.push(orderedSites[i]);
+    }
   }
 
   top3.forEach(async (value, index) => {
     const parent = document.querySelector('.top3');
-
+    debugger;
     const newDiv = document.createElement('div');
     newDiv.classList.add('top3-info');
 
@@ -208,16 +214,15 @@ export async function getTopSites() {
 
 export async function getWeeklyAvg() {
   const avgContainer = document.querySelector('.weekly-avg');
-
-  const totals = await chrome.storage.sync.get('totals');
-
-  let weeklySum = Object.values(totals['totals']).reduce((a, b) => a + b, 0);
-
-  let weeklyAvg = weeklySum / Object.keys(totals['totals']).length;
-
-  weeklyAvg = getTimeFormat3(weeklyAvg);
-
-  avgContainer.innerHTML = `${weeklyAvg}`;
+  const totals = await chrome.storage.local.get('totals');
+  if (Object.keys(totals).length === 0) {
+    chrome.storage.local.set({ totals: {} });
+  } else {
+    let weeklySum = Object.values(totals['totals']).reduce((a, b) => a + b, 0);
+    let weeklyAvg = weeklySum / Object.keys(totals['totals']).length;
+    weeklyAvg = getTimeFormat3(weeklyAvg);
+    avgContainer.innerHTML = `${weeklyAvg}`;
+  }
 }
 
 function addCancelListner(btn, popup) {
@@ -250,9 +255,9 @@ function addOpenPopupListner(btn, popup, popupToClose) {
 export async function getBudgets() {
   let budgetContainer = document.querySelector('.budget-container');
   let today = new Date().toDateString();
-  let todaysData = await chrome.storage.sync.get(today);
+  let todaysData = await chrome.storage.local.get(today);
 
-  let budgets = await chrome.storage.sync.get('budget');
+  let budgets = await chrome.storage.local.get('budget');
   budgets = budgets['budget'];
   let index = 0;
   for (let domain in budgets) {
@@ -379,7 +384,7 @@ export function addIncDecListner(btn, target, hasListener) {
 }
 
 async function populateBudgetedTime(domain) {
-  let budgets = await chrome.storage.sync.get('budget');
+  let budgets = await chrome.storage.local.get('budget');
   budgets = budgets['budget'];
   const header = document.querySelector('.budget-popup-2 > .popup-header');
   const hourDiv = document.querySelector('#hour-2');
@@ -464,11 +469,11 @@ export async function deleteBudget() {
   const budgetContainer = document.querySelector('.budget-container');
   const headerText = header.innerText;
   let domain = headerText.split(' ').pop();
-  let budgetData = await chrome.storage.sync.get('budget');
+  let budgetData = await chrome.storage.local.get('budget');
   budgetData = budgetData['budget'];
   delete budgetData[domain];
   console.log(budgetData);
-  chrome.storage.sync.set({ budget: budgetData });
+  chrome.storage.local.set({ budget: budgetData });
   closePopup(popup);
   budgetContainer.innerHTML = '';
   getBudgets();
@@ -480,15 +485,15 @@ function setBudget(url, timer) {
   url = `https://${url}`;
   let domain = getDomain(url);
   if (domain !== 'invalid') {
-    chrome.storage.sync.get('budget', (res) => {
+    chrome.storage.local.get('budget', (res) => {
       // if domain does not already have data, just set the budget
       if (Object.keys(res).length === 0) {
-        chrome.storage.sync.set({ budget: { [domain]: timer } });
+        chrome.storage.local.set({ budget: { [domain]: timer } });
       } else {
         // if the domain already has data, we need to add the 'budget' key with the new budget as the value
         let newData = res['budget'];
         newData[domain] = timer;
-        chrome.storage.sync.set({ budget: newData });
+        chrome.storage.local.set({ budget: newData });
       }
     });
   }

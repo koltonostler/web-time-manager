@@ -24,7 +24,7 @@ export class Tab {
     let promise = new Promise((resolve) => {
       if (domain) {
         // get stored data for domain
-        chrome.storage.sync.get(date, (res) => {
+        chrome.storage.local.get(date, (res) => {
           // if the domain has no data or there is no budget for the domain, return false
           if (
             Object.keys(res).length === 0 ||
@@ -76,9 +76,9 @@ export class Tab {
     } else {
       const fullDate = this.timeStamp;
       // get data from storage for current date
-      await chrome.storage.sync.get(fullDate, (res) => {
+      await chrome.storage.local.get(fullDate, (res) => {
         if (Object.keys(res).length === 0) {
-          chrome.storage.sync.set({ [fullDate]: { [domain]: timeOpen } });
+          chrome.storage.local.set({ [fullDate]: { [domain]: timeOpen } });
         } else {
           let newData = res[fullDate];
           // if date already exists, add the timeOpen to the existing time.
@@ -90,7 +90,7 @@ export class Tab {
             newData[domain] = timeOpen;
           }
           // set the new data to storage
-          chrome.storage.sync.set({ [fullDate]: newData });
+          chrome.storage.local.set({ [fullDate]: newData });
         }
         // if domain has no data stored, just store the current data
       });

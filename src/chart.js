@@ -10,149 +10,151 @@ import {
 export async function createTodaysChart() {
   let chart = await getAllData().then((data) => {
     const today = new Date().toDateString();
+    if (data[today] !== undefined) {
+      const sortedData = Object.keys(data[today])
+        .map((domain) => {
+          return [domain, data[today][domain]];
+        })
+        .sort((a, b) => a[1] - b[1]);
 
-    const sortedData = Object.keys(data[today])
-      .map((domain) => {
-        return [domain, data[today][domain]];
-      })
-      .sort((a, b) => a[1] - b[1]);
-
-    let todaysData = sortedData.map((datapoint) => {
-      return datapoint[1];
-    });
-    let todaysLabels = sortedData.map((datapoint) => {
-      return datapoint[0];
-    });
-
-    let otherLabels;
-    let otherData;
-
-    if (sortedData.length > 5) {
-      let top5 = sortedData.splice(sortedData.length - 5, sortedData.length);
-      todaysLabels = top5.map((datapoint) => {
-        return datapoint[0];
-      });
-      top5 = top5.map((datapoint) => {
+      let todaysData = sortedData.map((datapoint) => {
         return datapoint[1];
       });
-
-      let otherSortedData = sortedData.splice(0, sortedData.length);
-
-      otherLabels = otherSortedData.map((datapoint) => {
+      let todaysLabels = sortedData.map((datapoint) => {
         return datapoint[0];
       });
 
-      otherData = otherSortedData.map((datapoint) => {
-        return datapoint[1];
-      });
+      let otherLabels;
+      let otherData;
 
-      let other = otherData.reduce((a, b) => a + b, 0);
+      if (sortedData.length > 5) {
+        let top5 = sortedData.splice(sortedData.length - 5, sortedData.length);
+        todaysLabels = top5.map((datapoint) => {
+          return datapoint[0];
+        });
+        top5 = top5.map((datapoint) => {
+          return datapoint[1];
+        });
 
-      todaysData = top5;
-      todaysData.unshift(other);
-      todaysLabels.unshift('other');
-    }
+        let otherSortedData = sortedData.splice(0, sortedData.length);
 
-    const total = todaysData.reduce((a, b) => a + b, 0);
+        otherLabels = otherSortedData.map((datapoint) => {
+          return datapoint[0];
+        });
 
-    const chartData = {
-      labels: todaysLabels,
-      datasets: [
-        {
-          data: todaysData,
-          hoverOffset: 20,
-          labels: todaysLabels,
+        otherData = otherSortedData.map((datapoint) => {
+          return datapoint[1];
+        });
+
+        let other = otherData.reduce((a, b) => a + b, 0);
+
+        todaysData = top5;
+        todaysData.unshift(other);
+        todaysLabels.unshift('other');
+      }
+
+      const total = todaysData.reduce((a, b) => a + b, 0);
+
+      const chartData = {
+        labels: todaysLabels,
+        datasets: [
+          {
+            data: todaysData,
+            hoverOffset: 20,
+            labels: todaysLabels,
+          },
+        ],
+      };
+
+      const chartActions = {
+        name: 'Show Other',
+        handler(chart) {
+          const newDataset = {
+            data: otherData,
+            hoverOffset: -10,
+            labels: otherLabels,
+            backgroundColor: [
+              'rgb(255, 99, 132)',
+              'rgb(255, 159, 64)',
+              'rgb(255, 205, 86)',
+              'rgb(75, 192, 192)',
+              'rgb(54, 162, 235)',
+              'rgb(153, 102, 255)',
+              'rgb(201, 203, 207)',
+            ],
+          };
+
+          chart.data.datasets.push(newDataset);
+          chart.update();
         },
-      ],
-    };
+      };
 
-    const chartActions = {
-      name: 'Show Other',
-      handler(chart) {
-        const newDataset = {
-          data: otherData,
-          hoverOffset: -10,
-          labels: otherLabels,
-          backgroundColor: [
-            'rgb(255, 99, 132)',
-            'rgb(255, 159, 64)',
-            'rgb(255, 205, 86)',
-            'rgb(75, 192, 192)',
-            'rgb(54, 162, 235)',
-            'rgb(153, 102, 255)',
-            'rgb(201, 203, 207)',
-          ],
-        };
-
-        chart.data.datasets.push(newDataset);
-        chart.update();
-      },
-    };
-
-    const options = {
-      layout: {
-        padding: 10,
-      },
-      plugins: {
-        legend: {
-          display: true,
-          reverse: true,
+      const options = {
+        layout: {
+          padding: 10,
         },
-        tooltip: {
-          callbacks: {
-            title: function (context) {
-              let index = context[0].dataIndex;
-              if (context[0].dataset.labels[index] === 'other') {
-                return 'other (click for details)';
-              }
-              return context[0].dataset.labels[index];
-            },
-            label: function (context) {
-              const totalSeconds = context.parsed;
-              return getTimeFormat(totalSeconds);
-            },
-            afterLabel: function (context) {
-              let percentage = context.parsed / total;
-              return '(' + (percentage * 100).toFixed(2) + '%)';
+        plugins: {
+          legend: {
+            display: true,
+            reverse: true,
+          },
+          tooltip: {
+            callbacks: {
+              title: function (context) {
+                let index = context[0].dataIndex;
+                if (context[0].dataset.labels[index] === 'other') {
+                  return 'other (click for details)';
+                }
+                return context[0].dataset.labels[index];
+              },
+              label: function (context) {
+                const totalSeconds = context.parsed;
+                return getTimeFormat(totalSeconds);
+              },
+              afterLabel: function (context) {
+                let percentage = context.parsed / total;
+                return '(' + (percentage * 100).toFixed(2) + '%)';
+              },
             },
           },
         },
-      },
-    };
-    const config = {
-      type: 'doughnut',
-      data: chartData,
-      options: options,
-    };
+      };
+      const config = {
+        type: 'doughnut',
+        data: chartData,
+        options: options,
+      };
 
-    const ctx = document.getElementById('chart');
-    let myChart = new Chart(ctx, config);
+      const ctx = document.getElementById('chart');
+      let myChart = new Chart(ctx, config);
 
-    function getSlice(click) {
-      const slice = myChart.getElementsAtEventForMode(
-        click,
-        'nearest',
-        { intersect: true },
-        true
-      );
-      if (slice.length) {
-        const firstSlice = slice[0];
-        const label =
-          myChart.data.datasets[firstSlice.datasetIndex].labels[
-            firstSlice.index
-          ];
-        if (label === 'other' && myChart.data.datasets.length < 2) {
-          chartActions.handler(myChart);
-        } else if (myChart.data.datasets.length > 1) {
-          myChart.data.datasets.pop();
-          chart.update();
+      function getSlice(click) {
+        const slice = myChart.getElementsAtEventForMode(
+          click,
+          'nearest',
+          { intersect: true },
+          true
+        );
+        if (slice.length) {
+          const firstSlice = slice[0];
+          const label =
+            myChart.data.datasets[firstSlice.datasetIndex].labels[
+              firstSlice.index
+            ];
+          if (label === 'other' && myChart.data.datasets.length < 2) {
+            chartActions.handler(myChart);
+          } else if (myChart.data.datasets.length > 1) {
+            myChart.data.datasets.pop();
+            chart.update();
+          }
         }
       }
+
+      ctx.onclick = getSlice;
+      return myChart;
+    } else {
+      return null;
     }
-
-    ctx.onclick = getSlice;
-
-    return myChart;
   });
   return chart;
 }
