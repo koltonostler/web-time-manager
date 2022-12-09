@@ -33,18 +33,28 @@ function connect() {
     .onDisconnect.addListener(connect);
 }
 
-// get all active tabs
+// get all  tabs
 async function getAllTabs() {
   let queryOptions = {};
   let tabs = await chrome.tabs.query(queryOptions);
 
   return tabs;
 }
+
+// get all active tabs
 async function getActiveTabs() {
   let queryOptions = { active: true };
   let tabs = await chrome.tabs.query(queryOptions);
 
   return tabs;
+}
+
+// get active tab in focused window
+async function getActiveTab() {
+  let queryOptions = { active: true, lastFocusedWindow: true };
+
+  let [tab] = await chrome.tabs.query(queryOptions);
+  return tab;
 }
 
 function blockHTML(budget, url) {
@@ -226,15 +236,25 @@ async function storeTabs(activeTabs) {
   }
 }
 
-let localStoreInterval = setInterval(async () => {
-  if (trackActiveOnly) {
-    let activeTabs = await getActiveTabs();
-    storeTabs(activeTabs);
-  } else {
-    let allTabs = await getAllTabs();
-    storeTabs(allTabs);
-  }
-}, 1000);
+let trackingInterval;
+
+startTrackingTimer();
+
+async function startTrackingTimer() {
+  trackingInterval = setInterval(async () => {
+    if (trackActiveOnly) {
+      let activeTabs = await getActiveTabs();
+      storeTabs(activeTabs);
+    } else {
+      let allTabs = await getAllTabs();
+      storeTabs(allTabs);
+    }
+  }, 1000);
+}
+
+function stopTrackingTimer() {
+  clearInterval(trackingInterval);
+}
 
 let trackActiveOnly = true;
 
@@ -247,26 +267,24 @@ async function getActiveState() {
 trackActiveOnly = await getActiveState();
 
 /*   TAB LISTENERS   */
+// set idle timer to 1min
+let idleTimer = 60;
 
-chrome.idle.setDetectionInterval(15);
+chrome.idle.setDetectionInterval(idleTimer);
 
 chrome.idle.onStateChanged.addListener(async (newState) => {
-  //   const tab = await getActiveTab();
-  //   console.log(tab.audible);
-  //   console.log(newState);
-  //   if (!tab.audible) {
-  //     if (newState === 'idle') {
-  //       //   recordAndCloseTab(lastTab.tabId, lastTab.windowId);
-  //       stopTrackingTab(tabToTrack);
-  //     }
-  //     if (newState === 'active') {
-  //       //   lastTab = await createNewTab(tab);
-  //       //   checkLastTab(lastTab);
-  //       //   blockedSiteCheck(lastTab);
-  //       tabToTrack = await createNewTab(tab);
-  //       startTrackingTab(tabToTrack);
-  //     }
-  //   }
+  const tab = await getActiveTab();
+  console.log(tab.audible);
+  console.log(newState);
+  if (!tab.audible) {
+    if (newState === 'idle') {
+      //   recordAndCloseTab(lastTab.tabId, lastTab.windowId);
+      stopTrackingTimer();
+    }
+    if (newState === 'active') {
+      startTrackingTimer();
+    }
+  }
 });
 
 let syncStorageActive = false;
