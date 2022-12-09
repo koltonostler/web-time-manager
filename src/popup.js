@@ -32,31 +32,31 @@ if (todaysChart !== null) {
   displayTodayTotalTime(totalTime);
 }
 
-getWeeklyAvg();
+await getTotalTimes();
+await getWeeklyAvg();
 getBudgets();
 setupBudgetListeners();
 setCounterEvents();
-getTotalTimes();
 getTop3();
 
-// let toggleActive = { trackActive: true };
+let toggleActive = { trackActive: true };
 
-// function saveActiveState() {
-//   chrome.storage.local.set({ activeState: toggleActive.trackActive });
-// }
+function saveActiveState() {
+  chrome.storage.local.set({ activeState: toggleActive.trackActive });
+}
 
-// const toggle = document.getElementById('checkbox');
+const toggle = document.getElementById('checkbox');
 
-// toggle.addEventListener('change', () => {
-//   toggleActive.trackActive = !toggleActive.trackActive;
-//   saveActiveState();
-//   chrome.runtime.sendMessage(toggleActive);
-// });
+toggle.addEventListener('change', () => {
+  toggleActive.trackActive = !toggleActive.trackActive;
+  saveActiveState();
+  chrome.runtime.sendMessage(toggleActive);
+});
 
-// chrome.runtime.sendMessage({ msg: 'getActiveState' }, function (response) {
-//   toggleActive.trackActive = response.activeState;
-//   toggle.checked = toggleActive.trackActive;
-// });
+chrome.runtime.sendMessage({ msg: 'getActiveState' }, function (response) {
+  toggleActive.trackActive = response.activeState;
+  toggle.checked = toggleActive.trackActive;
+});
 
 const dailyBtn = document.querySelector('#daily');
 const weeklyBtn = document.querySelector('#weekly');

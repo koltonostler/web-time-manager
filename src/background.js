@@ -33,28 +33,13 @@ function connect() {
     .onDisconnect.addListener(connect);
 }
 
-async function getBudget(url) {
-  const domain = getDomain(url);
-  if (domain) {
-    let budget = null;
-    // get domain data from storage
-    const data = await chrome.storage.local.get('budget');
-    // if domain has data, get the budget
-    if (domain in data['budget']) {
-      budget = data['budget'][domain];
-    }
-    return budget;
-  }
-}
-
-// gets the active tab.
-async function getActiveTab() {
-  let queryOptions = { active: true, lastFocusedWindow: true };
-  let [tab] = await chrome.tabs.query(queryOptions);
-  return tab;
-}
-
 // get all active tabs
+async function getAllTabs() {
+  let queryOptions = {};
+  let tabs = await chrome.tabs.query(queryOptions);
+
+  return tabs;
+}
 async function getActiveTabs() {
   let queryOptions = { active: true };
   let tabs = await chrome.tabs.query(queryOptions);
@@ -62,7 +47,7 @@ async function getActiveTabs() {
   return tabs;
 }
 
-function blockSite(budget, url) {
+function blockHTML(budget, url) {
   document.body.innerHTML = `
   <div class="block">
       <span style='font-size:120px;'>&#9201;</span>
@@ -111,64 +96,98 @@ b {
   
   `;
 
-let timeoutIds = [];
+async function blockSite(url, tab) {
+  let budget = getTimeFormat3(await getBudget(url));
 
-async function blockedSiteCheck(tab) {
-  let budget = getTimeFormat3(tab.budget);
-  let url = getDomain(tab.url);
-  for (let index in timeoutIds) {
-    clearTimeout(timeoutIds[index]);
-    timeoutIds.splice(index, 1);
-  }
-  if (await tab.isBlocked()) {
-    chrome.scripting.executeScript({
-      target: { tabId: tab.tabId },
-      func: blockSite,
-      args: [budget, url],
-    });
-    chrome.scripting.insertCSS({
-      target: { tabId: tab.tabId },
-      css: blockPageCss,
-    });
-  } else if (tab.budget !== null) {
-    let domain = getDomain(tab.url);
-    let date = tab.timeStamp;
-    let budgetedTime = tab.budget;
-    let promise = new Promise((resolve) => {
-      // get stored data for domain
-      chrome.storage.local.get(date, (res) => {
-        // if there is no budget for the domain or no data for the date
-        if (
-          Object.keys(res).length === 0 ||
-          Object.keys(res[date]).length === 0 ||
-          res[date][domain] === undefined
-        ) {
-          resolve(0);
-          return;
-        }
-        const domainTime = res[date][domain];
-        // check to see if current day time spent at domain is greater than budgeted time.  if so return true
-        resolve(domainTime);
-      });
-    });
-    let domainTime = await promise;
-    let timeUntilBlock = (budgetedTime - domainTime) * 1000;
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: blockHTML,
+    args: [budget, url],
+  });
+  chrome.scripting.insertCSS({
+    target: { tabId: tab.id },
+    css: blockPageCss,
+  });
 
-    console.log(timeUntilBlock);
-    let timeoutId = setTimeout(async () => {
-      chrome.scripting.executeScript({
-        target: { tabId: tab.tabId },
-        func: blockSite,
-        args: [tab.budget, tab.url],
-      });
-      chrome.scripting.insertCSS({
-        target: { tabId: tab.tabId },
-        css: blockPageCss,
-      });
-      tab.setCloseTime();
-    }, timeUntilBlock);
-    timeoutIds.push(timeoutId);
+  //   } else if (budget !== null) {
+  //     let domain = getDomain(tab.url);
+  //     let date = tab.timeStamp;
+  //     let budgetedTime = tab.budget;
+  //     let promise = new Promise((resolve) => {
+  //       // get stored data for domain
+  //       chrome.storage.local.get(date, (res) => {
+  //         // if there is no budget for the domain or no data for the date
+  //         if (
+  //           Object.keys(res).length === 0 ||
+  //           Object.keys(res[date]).length === 0 ||
+  //           res[date][domain] === undefined
+  //         ) {
+  //           resolve(0);
+  //           return;
+  //         }
+  //         const domainTime = res[date][domain];
+  //         // check to see if current day time spent at domain is greater than budgeted time.  if so return true
+  //         resolve(domainTime);
+  //       });
+  //     });
+  //     let domainTime = await promise;
+  //     let timeUntilBlock = (budgetedTime - domainTime) * 1000;
+
+  //     console.log(timeUntilBlock);
+  //     let timeoutId = setTimeout(async () => {
+  //       chrome.scripting.executeScript({
+  //         target: { tabId: tab.tabId },
+  //         func: blockSite,
+  //         args: [tab.budget, tab.url],
+  //       });
+  //       chrome.scripting.insertCSS({
+  //         target: { tabId: tab.tabId },
+  //         css: blockPageCss,
+  //       });
+  //       tab.setCloseTime();
+  //     }, timeUntilBlock);
+  //     timeoutIds.push(timeoutId);
+  //   }
+}
+
+async function getBudget(url) {
+  let budget = null;
+  // get domain data from storage
+  const data = await chrome.storage.local.get('budget');
+  // if domain has data, get the budget
+  if (url in data['budget']) {
+    budget = data['budget'][url];
   }
+  return budget;
+}
+
+// function that will return true/false on if the site is blocked.
+export async function isBlocked(url) {
+  let date = new Date().toDateString();
+  let budgetedTime = await getBudget(url);
+  let promise = new Promise((resolve) => {
+    // get stored data for domain
+    chrome.storage.local.get(date, (res) => {
+      // if the domain has no data or there is no budget for the domain, return false
+      if (
+        Object.keys(res).length === 0 ||
+        Object.keys(res[date]).length === 0 ||
+        budgetedTime === null
+      ) {
+        resolve(false);
+        return;
+      }
+      const domainTime = res[date][url];
+      // check to see if current day time spent at domain is greater than budgeted time.  if so return true
+      if (domainTime > budgetedTime) {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+  });
+  let result = await promise;
+  return result;
 }
 
 function deleteTodaysData() {
@@ -188,24 +207,33 @@ async function storeTabs(activeTabs) {
       if (urlIgnoreList.includes(url) || url === 'invalid') {
         // do nothing
       } else {
-        let currentTime = todaysData[today][url];
-        if (currentTime !== undefined) {
-          currentTime++;
-          todaysData[today][url] = currentTime;
+        if ((await isBlocked(url)) === false) {
+          let currentTime = todaysData[today][url];
+          if (currentTime !== undefined) {
+            currentTime++;
+            todaysData[today][url] = currentTime;
+          } else {
+            todaysData[today][url] = 1;
+          }
+          console.log(url, currentTime);
         } else {
-          todaysData[today][url] = 1;
+          console.log(url + ' is blocked');
+          blockSite(url, activeTabs[i]);
         }
-        console.log(url, currentTime);
       }
     }
     chrome.storage.local.set({ [today]: todaysData[today] });
   }
 }
 
-setInterval(async () => {
-  let activeTabs = await getActiveTabs();
-
-  storeTabs(activeTabs);
+let localStoreInterval = setInterval(async () => {
+  if (trackActiveOnly) {
+    let activeTabs = await getActiveTabs();
+    storeTabs(activeTabs);
+  } else {
+    let allTabs = await getAllTabs();
+    storeTabs(allTabs);
+  }
 }, 1000);
 
 let trackActiveOnly = true;
@@ -240,6 +268,33 @@ chrome.idle.onStateChanged.addListener(async (newState) => {
   //     }
   //   }
 });
+
+let syncStorageActive = false;
+
+if (syncStorageActive) {
+  console.log('sync storage active');
+  getDataFromSyncStorage();
+  setInterval(() => {
+    storeDataToSyncStorage();
+  }, 30000);
+}
+
+// getDataFromSyncStorage();
+
+async function storeDataToSyncStorage() {
+  let localData = await chrome.storage.local.get(null);
+  for (let key in localData) {
+    chrome.storage.sync.set({ [key]: localData[key] });
+  }
+  console.log('sync storage updated');
+}
+
+async function getDataFromSyncStorage() {
+  let syncData = await chrome.storage.sync.get(null);
+  for (let key in syncData) {
+    chrome.storage.local.set({ [key]: syncData[key] });
+  }
+}
 
 chrome.runtime.onInstalled.addListener((details) => {
   chrome.storage.local.set({ budget: {} });

@@ -238,6 +238,10 @@ function closePopup(popup) {
 }
 
 function openPopup(popup) {
+  if (popup === document.querySelector('.budget-popup-1')) {
+    let urlInput = document.querySelector('#url');
+    urlInput.focus();
+  }
   popup.style.top = '100px';
   popup.style.opacity = '1';
   popup.style.zIndex = '2';
