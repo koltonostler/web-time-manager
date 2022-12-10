@@ -1,7 +1,5 @@
 import { getDomain } from './calculations';
 
-export const urlIgnoreList = ['newtab', 'extensions'];
-
 export class Tab {
   // constructor for class
   constructor(tabId, windowId, url, icon, audible, budget) {

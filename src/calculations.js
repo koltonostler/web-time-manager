@@ -1,6 +1,5 @@
 'use strict';
 
-let hasListener = false;
 export function getHours(seconds) {
   const hours = Math.floor(seconds / 3600);
   return hours;
@@ -323,7 +322,7 @@ export function setCounterEvents() {
   let slowIndex = 0;
   countBtns.forEach((btn, index) => {
     let target = countTargets[slowIndex];
-    addIncDecListner(btn, target, hasListener);
+    addIncDecListner(btn, target);
     if (index % 2 === 1) {
       slowIndex++;
     }
@@ -346,45 +345,42 @@ export function setupBudgetListeners() {
   addCancelListner(cancelBtn1, popup1);
 }
 
-export function addIncDecListner(btn, target, hasListener) {
-  if (!hasListener) {
-    if (btn.classList.contains('more')) {
-      btn.addEventListener('click', () => {
-        let count = parseInt(target.innerText);
-        count++;
-        if (target.classList.contains('minute-display')) {
-          if (count > 59) {
-            count = 0;
-          }
+export function addIncDecListner(btn, target) {
+  if (btn.classList.contains('more')) {
+    btn.addEventListener('click', () => {
+      let count = parseInt(target.innerText);
+      count++;
+      if (target.classList.contains('minute-display')) {
+        if (count > 59) {
+          count = 0;
         }
-        if (target.classList.contains('hour-display')) {
-          if (count > 24) {
-            count = 0;
-          }
+      }
+      if (target.classList.contains('hour-display')) {
+        if (count > 24) {
+          count = 0;
         }
-        count = zeroPad(count, 2);
-        target.textContent = count;
-      });
-    } else if (btn.classList.contains('less')) {
-      btn.addEventListener('click', () => {
-        let count = parseInt(target.innerText);
-        count--;
-        if (target.classList.contains('minute-display')) {
-          if (count < 0) {
-            count = 59;
-          }
+      }
+      count = zeroPad(count, 2);
+      target.textContent = count;
+    });
+  } else if (btn.classList.contains('less')) {
+    btn.addEventListener('click', () => {
+      let count = parseInt(target.innerText);
+      count--;
+      if (target.classList.contains('minute-display')) {
+        if (count < 0) {
+          count = 59;
         }
-        if (target.classList.contains('hour-display')) {
-          if (count < 0) {
-            count = 24;
-          }
+      }
+      if (target.classList.contains('hour-display')) {
+        if (count < 0) {
+          count = 24;
         }
-        count = zeroPad(count, 2);
-        target.textContent = count;
-      });
-    }
+      }
+      count = zeroPad(count, 2);
+      target.textContent = count;
+    });
   }
-  hasListener = true;
 }
 
 async function populateBudgetedTime(domain) {
