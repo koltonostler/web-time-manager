@@ -96,15 +96,17 @@ async function getBudget(url) {
   let budget = null;
   // get domain data from storage
   const data = await chrome.storage.local.get('budget');
-  // if domain has data, get the budget
+
   if (url in data['budget']) {
     budget = data['budget'][url];
   }
+
+  // if domain has data, get the budget
   return budget;
 }
 
 // function that will return true/false on if the site is blocked.
-async function isBlocked(url) {
+export async function isBlocked(url) {
   let date = new Date().toDateString();
   let budgetedTime = await getBudget(url);
   let promise = new Promise((resolve) => {

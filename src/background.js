@@ -4,7 +4,9 @@ import {
   storeTabs,
   storeDataToSyncStorage,
   getDataFromSyncStorage,
+  isBlocked,
 } from './backgroundFunctions';
+import { getDomain } from './calculations';
 
 /* function to keep persistant background in manifest v3 */
 const onUpdate = (tabId, info, tab) =>
@@ -41,10 +43,9 @@ function connect() {
 
 let trackingInterval;
 let syncStorageActive = false;
+let timerActive = startTrackingTimer();
 
-startTrackingTimer();
-
-async function startTrackingTimer() {
+export async function startTrackingTimer() {
   trackingInterval = setInterval(async () => {
     if (trackActiveOnly) {
       let activeTabs = await getActiveTabs();
@@ -54,10 +55,12 @@ async function startTrackingTimer() {
       storeTabs(allTabs);
     }
   }, 1000);
+  return true;
 }
 
-function stopTrackingTimer() {
+export function stopTrackingTimer() {
   clearInterval(trackingInterval);
+  return false;
 }
 
 let trackActiveOnly = true;
@@ -72,28 +75,32 @@ trackActiveOnly = await getActiveState();
 
 /*   TAB LISTENERS   */
 // set idle timer to 1min
-let idleTimer = 15;
+let idleTimer = 60;
 
 chrome.idle.setDetectionInterval(idleTimer);
 
 chrome.idle.onStateChanged.addListener(async (newState) => {
   let audible = false;
+
   const activeTabs = await getActiveTabs();
   for (let tab in activeTabs) {
-    console.log(activeTabs[tab]);
     if (activeTabs[tab].audible) {
       audible = true;
     }
   }
-  //   console.log(tab.audible);
-  //   console.log(newState);
+  console.log(audible);
+  console.log(newState);
+
   if (!audible) {
     if (newState === 'idle') {
-      //   recordAndCloseTab(lastTab.tabId, lastTab.windowId);
-      stopTrackingTimer();
+      if (timerActive) {
+        timerActive = stopTrackingTimer();
+      }
     }
-    if (newState === 'active') {
-      startTrackingTimer();
+  }
+  if (newState === 'active') {
+    if (!timerActive) {
+      timerActive = startTrackingTimer();
     }
   }
 });
@@ -108,6 +115,17 @@ if (syncStorageActive) {
 
 chrome.runtime.onInstalled.addListener((details) => {
   chrome.storage.local.set({ budget: {} });
+  let installUrl = chrome.runtime.getURL('onboarding.html');
+  let uninstallUrl = 'https://forms.gle/PRjZvdV2J2VSPpKE7';
+
+  if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+    chrome.tabs.create({ url: installUrl }, function (tab) {
+      console.log('new install tab created');
+    });
+    chrome.runtime.setUninstallURL(uninstallUrl, () => {
+      console.log('uninstall url set');
+    });
+  }
 });
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {

@@ -68,6 +68,15 @@ const newSaveBtn = document.querySelector('#save-1');
 const updateBudgetBtn = document.querySelector('#save-2');
 const dailyChartBtn = document.querySelector('#daily');
 const weeklyChartBtn = document.querySelector('#weekly');
+const settingsBtn = document.querySelector('.settings-icon');
+
+let optionsUrl = chrome.runtime.getURL('options.html');
+
+settingsBtn.addEventListener('click', () => {
+  chrome.tabs.create({ url: optionsUrl }, function (tab) {
+    console.log('options tab opened');
+  });
+});
 
 dailyChartBtn.addEventListener('click', () => {
   dailyChartBtn.classList.add('active-chart');
