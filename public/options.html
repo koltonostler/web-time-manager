@@ -5,9 +5,80 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Options</title>
+    <link rel="stylesheet" href="options.css" />
   </head>
   <body>
-    <h1>Options</h1>
+    <header>
+      <div class="header-container">
+        <h1>Web Time Tracker</h1>
+        <h3>Settings Page</h3>
+      </div>
+    </header>
+    <div class="body-container">
+      <section class="options">
+        <div class="options-container">
+          <fieldset>
+            <legend>Adjust Time Tracker Behavior</legend>
+            <div class="checkbox">
+              <label for="one-tab-checkbox">
+                <input
+                  type="checkbox"
+                  name="one-tab-checkbox"
+                  id="one-tab-checkbox"
+                />
+                Only track the active tab in the current focused window (doesn't
+                allow for multiple window tracking)
+              </label>
+            </div>
+            <div class="checkbox">
+              <label for="all-tabs-checkbox">
+                <input
+                  type="checkbox"
+                  name="all-tabs-checkbox"
+                  id="all-tabs-checkbox"
+                />
+                Enable tracking on all tabs (tracks all open tabs in chrome,
+                whether active or not)
+              </label>
+            </div>
+
+            <div class="idle-settings">
+              <div class="idle-timer-settings">
+                <label for="idle-timer">
+                  Set idle timer:
+                  <select name="idle-timer" id="idle-timer">
+                    <option value="15">15 sec</option>
+                    <option value="30">30 sec</option>
+                    <option value="45">45 sec</option>
+                    <option value="60">1 min</option>
+                    <option value="120">2 min</option>
+                    <option value="300">5 min</option>
+                    <option value="600">10 min</option>
+                    <option value="1200">20 min</option>
+                    <option value="1800">30 min</option>
+                    <option value="3600">1 hour</option>
+                  </select>
+                </label>
+              </div>
+              <div class="idle-media-settings">
+                <label for="idle-media-checkbox">
+                  <input
+                    type="checkbox"
+                    name="idle-media-checkbox"
+                    id="idle-media-checkbox"
+                  />
+                  Don't enter idle if current tab has media playing
+                </label>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Websites to Ignore</legend>
+          </fieldset>
+        </div>
+      </section>
+      <section class="app-feedback"></section>
+    </div>
 
     <script src="options.js"></script>
   </body>

@@ -74,6 +74,9 @@ export async function getAllData() {
 export function getDomain(url) {
   try {
     const domain = new URL(url).hostname;
+    if (domain.startsWith('www.')) {
+      return domain.substring(4);
+    }
     return domain;
   } catch (err) {
     return 'invalid';
@@ -102,10 +105,6 @@ export function getLastWeek(startingDate) {
     lastWeekDates[-i] = calcDate;
   }
   return lastWeekDates;
-}
-
-export function test() {
-  chrome.storage.local.set({ totals: 'this is a test' });
 }
 
 export async function getTotalTimes() {

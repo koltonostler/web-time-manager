@@ -1,6 +1,7 @@
 'use strict';
 import { getDomain, getTimeFormat3 } from './calculations';
-const urlIgnoreList = ['newtab', 'extensions'];
+const urlIgnoreList = [];
+const httpRegEx = /(?:https\:\/\/|http\:\/\/)(.*)/;
 
 //get all tabs
 export async function getAllTabs() {
@@ -143,7 +144,8 @@ export async function storeTabs(activeTabs) {
   } else {
     for (let i = 0; i < activeTabs.length; i++) {
       let url = getDomain(activeTabs[i].url);
-      if (urlIgnoreList.includes(url) || url === 'invalid') {
+      let isHttp = httpRegEx.test(activeTabs[i].url);
+      if (!isHttp || url === 'invalid' || urlIgnoreList.includes(url)) {
         // do nothing
       } else {
         if ((await isBlocked(url)) === false) {
