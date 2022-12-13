@@ -8,11 +8,14 @@
   font-family: 'Inter';
 }
 
+html {
+  background-color: rgb(34, 42, 78);
+}
+
 header {
   width: 100%;
-  height: 20vh;
-  background-color: rgb(27, 27, 31);
-  color: white;
+  height: 15vh;
+  border-bottom: solid 2px rgb(27, 27, 31);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -22,7 +25,7 @@ header {
   width: 70%;
 }
 .header-container > h1 {
-  font-size: 45px;
+  font-size: 35px;
 }
 .header-container > h3 {
   font-size: 25px;
@@ -30,22 +33,219 @@ header {
   padding-left: 2rem;
 }
 
+.ignore-popup {
+  background-color: #242424;
+  border-radius: 10px;
+  color: white;
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+  opacity: 0;
+  z-index: -2;
+  height: 10rem;
+  width: 25rem;
+  position: fixed;
+  top: 50px;
+  transition: 250ms ease;
+}
+
+.options-divider {
+  width: 1px;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.168);
+}
+
+.options-toolbar > button {
+  cursor: pointer;
+  color: white;
+  background-color: transparent;
+  outline: none;
+  border: none;
+  font-size: 16px;
+  transition: 150ms ease;
+}
+
+.options-toolbar > button:hover {
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.6);
+  background-color: transparent;
+  outline: none;
+  border: none;
+  font-size: 16px;
+}
+
+.popup-header {
+  font-size: 24px;
+}
+
+.url-container {
+  font-size: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem;
+}
+
+#url {
+  padding-left: 0.5rem;
+  margin-left: 1rem;
+  color: white;
+  background-color: transparent;
+  height: 100%;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+  font-size: 20px;
+}
+
+#url:focus {
+  outline: none;
+  border-bottom: 2px solid white;
+}
+
+.options-toolbar {
+  width: 75%;
+  display: flex;
+  justify-content: space-around;
+}
+
+.ignore-popup > .options-toolbar {
+  width: 50%;
+}
+
 .body-container {
   width: 100%;
-  height: 75vh;
+  height: auto;
   display: flex;
-  /* border: 1px solid blue; */
-  margin-top: 1rem;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 .options {
-  height: 100%;
-  width: 60%;
-  /* border: 1px solid red; */
+  padding: 1rem;
 }
 
-.app-feedback {
-  height: 100%;
-  width: 40%;
-  /* border: 1px solid green; */
+.setting {
+  margin: 1rem 0;
+}
+
+.info {
+  font-size: 16px;
+}
+#all-tabs-info {
+  transition: 300ms linear;
+}
+
+#all-tabs-info:hover::after,
+#focus-info:hover::after,
+#ignore-info:hover::after {
+  transform: translateY(-65px) translateX(10px);
+  padding: 0.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  white-space: pre-wrap;
+  text-align: center;
+  font-family: 'Inter';
+  font-size: 11px;
+  border-radius: 5px;
+  width: 8rem;
+  height: auto;
+  border: 1px solid rgba(52, 52, 52, 0.22);
+  background-color: white;
+  position: absolute;
+}
+
+#all-tabs-info:hover::after {
+  content: 'tracks all open tabs in chrome, whether active or not. This is not recommended for someone who frequently uses many tabs because it will inflate daily web use time';
+}
+
+#focus-info:hover::after {
+  content: '"focused" window refers to the active window or the window "on top" if multiple chrome windows are open. Enabling this option does not allow for tracking multiple windows';
+}
+
+#ignore-info:hover::after {
+  content: 'Websites on this list will not be tracked by Web Time Manager';
+}
+
+#idle-timer {
+  border: 1px solid gray;
+}
+
+.ignored-list {
+  width: 100%;
+  min-height: 100px;
+  height: auto;
+  list-style: none;
+  font-size: 14px;
+}
+
+.ignored-list li {
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(54, 54, 54, 0.192);
+  border-radius: 3px;
+  margin: 0.3rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.remove {
+  cursor: pointer;
+  color: rgba(51, 51, 51, 0.794);
+  transition: 250ms ease;
+}
+
+.remove:hover {
+  color: red;
+}
+
+legend {
+  border-bottom: 1px solid rgb(27, 27, 31);
+  width: 100%;
+  padding-bottom: 0.5rem;
+  font-size: 18px;
+}
+
+.options-page {
+  margin: 3rem 0;
+  width: 500px;
+  background-color: white;
+  border-radius: 15px;
+  padding: 0 2rem;
+}
+
+.ignore-container {
+  border-bottom: 1px solid rgb(45, 45, 45);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.add {
+  cursor: pointer;
+  padding: 0.25rem;
+  color: rgba(51, 51, 51, 0.794);
+  border-radius: 20px;
+  transition: 200ms;
+  margin: 0 1rem;
+  font-size: 30px;
+}
+
+.add:hover {
+  color: rgb(45, 45, 45);
+}
+
+.checkbox label {
+  display: inline-block;
+  white-space: nowrap;
+}
+.checkbox input {
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.idle-timer-settings select {
+  margin-left: 10px;
 }

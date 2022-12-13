@@ -1,6 +1,6 @@
 'use strict';
 import { getDomain, getTimeFormat3 } from './calculations';
-const urlIgnoreList = [];
+import { urlIgnoreList } from './background';
 const httpRegEx = /(?:https\:\/\/|http\:\/\/)(.*)/;
 
 //get all tabs

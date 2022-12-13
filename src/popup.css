@@ -25,10 +25,6 @@ button {
   margin: 5px;
 }
 
-.url-container {
-  width: 15rem;
-}
-
 .toggle-switch {
   position: relative;
   display: inline-block;

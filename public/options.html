@@ -8,76 +8,117 @@
     <link rel="stylesheet" href="options.css" />
   </head>
   <body>
-    <header>
-      <div class="header-container">
-        <h1>Web Time Tracker</h1>
-        <h3>Settings Page</h3>
-      </div>
-    </header>
     <div class="body-container">
-      <section class="options">
-        <div class="options-container">
-          <fieldset>
-            <legend>Adjust Time Tracker Behavior</legend>
-            <div class="checkbox">
-              <label for="one-tab-checkbox">
-                <input
-                  type="checkbox"
-                  name="one-tab-checkbox"
-                  id="one-tab-checkbox"
-                />
-                Only track the active tab in the current focused window (doesn't
-                allow for multiple window tracking)
-              </label>
-            </div>
-            <div class="checkbox">
-              <label for="all-tabs-checkbox">
-                <input
-                  type="checkbox"
-                  name="all-tabs-checkbox"
-                  id="all-tabs-checkbox"
-                />
-                Enable tracking on all tabs (tracks all open tabs in chrome,
-                whether active or not)
-              </label>
-            </div>
-
-            <div class="idle-settings">
-              <div class="idle-timer-settings">
-                <label for="idle-timer">
-                  Set idle timer:
-                  <select name="idle-timer" id="idle-timer">
-                    <option value="15">15 sec</option>
-                    <option value="30">30 sec</option>
-                    <option value="45">45 sec</option>
-                    <option value="60">1 min</option>
-                    <option value="120">2 min</option>
-                    <option value="300">5 min</option>
-                    <option value="600">10 min</option>
-                    <option value="1200">20 min</option>
-                    <option value="1800">30 min</option>
-                    <option value="3600">1 hour</option>
-                  </select>
-                </label>
-              </div>
-              <div class="idle-media-settings">
-                <label for="idle-media-checkbox">
+      <div class="ignore-popup">
+        <div class="popup-header">Add url to ignore list:</div>
+        <div class="url-container">
+          <span>https://</span>
+          <input type="text" name="url" id="url" placeholder="url" />
+        </div>
+        <div class="options-toolbar">
+          <button class="cancel" id="cancel-1">Cancel</button>
+          <div class="options-divider"></div>
+          <button class="save" id="save-1">Add</button>
+        </div>
+      </div>
+      <div class="options-page">
+        <header>
+          <div class="header-container">
+            <h1>Web Time Manager</h1>
+            <h3>Settings Page</h3>
+          </div>
+        </header>
+        <section class="options">
+          <div class="options-container">
+            <fieldset>
+              <legend>Adjust Time Tracking Behavior</legend>
+              <div class="checkbox setting">
+                <label for="one-tab-checkbox">
                   <input
                     type="checkbox"
-                    name="idle-media-checkbox"
-                    id="idle-media-checkbox"
+                    name="one-tab-checkbox"
+                    id="one-tab-checkbox"
                   />
-                  Don't enter idle if current tab has media playing
+                  Only track the active tab in the currently focused window<span
+                    class="material-symbols-outlined info"
+                    id="focus-info"
+                  >
+                    info
+                  </span>
                 </label>
               </div>
-            </div>
-          </fieldset>
-          <fieldset>
-            <legend>Websites to Ignore</legend>
-          </fieldset>
-        </div>
-      </section>
-      <section class="app-feedback"></section>
+              <div class="checkbox setting">
+                <label for="all-tabs-checkbox">
+                  <input
+                    type="checkbox"
+                    name="all-tabs-checkbox"
+                    id="all-tabs-checkbox"
+                  />
+                  <span>Enable tracking on all tabs</span
+                  ><span
+                    class="material-symbols-outlined info"
+                    id="all-tabs-info"
+                  >
+                    info
+                  </span>
+                </label>
+              </div>
+
+              <div class="idle-settings setting">
+                <div class="checkbox setting">
+                  <label for="idle-media-checkbox">
+                    <input
+                      type="checkbox"
+                      name="idle-media-checkbox"
+                      id="idle-media-checkbox"
+                      checked
+                    />
+                    Don't enter idle if current tab has sound playing
+                  </label>
+                </div>
+                <div class="idle-timer-settings">
+                  <label for="idle-timer">
+                    Set idle timer:
+                    <select name="idle-timer" id="idle-timer">
+                      <option value="15">15 sec</option>
+                      <option value="30">30 sec</option>
+                      <option value="45">45 sec</option>
+                      <option value="60" selected>1 min</option>
+                      <option value="120">2 min</option>
+                      <option value="300">5 min</option>
+                      <option value="600">10 min</option>
+                      <option value="1200">20 min</option>
+                      <option value="1800">30 min</option>
+                      <option value="3600">1 hour</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend class="ignore-container">
+                <span
+                  >Websites to Ignore<span
+                    class="material-symbols-outlined info"
+                    id="ignore-info"
+                  >
+                    info
+                  </span></span
+                >
+                <div class="add-ignore">
+                  <div
+                    class="material-symbols-outlined add"
+                    title="add website to ignore list"
+                  >
+                    add
+                  </div>
+                </div>
+              </legend>
+              <ul class="ignored-list"></ul>
+            </fieldset>
+          </div>
+        </section>
+      </div>
     </div>
 
     <script src="options.js"></script>

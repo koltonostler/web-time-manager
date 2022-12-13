@@ -143,7 +143,6 @@ export async function getTop3() {
 
   top3.forEach(async (value, index) => {
     const parent = document.querySelector('.top3');
-    debugger;
     const newDiv = document.createElement('div');
     newDiv.classList.add('top3-info');
 

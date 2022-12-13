@@ -4,9 +4,7 @@ import {
   storeTabs,
   storeDataToSyncStorage,
   getDataFromSyncStorage,
-  isBlocked,
 } from './backgroundFunctions';
-import { getDomain } from './calculations';
 
 /* function to keep persistant background in manifest v3 */
 const onUpdate = (tabId, info, tab) =>
@@ -65,13 +63,22 @@ export function stopTrackingTimer() {
 
 let trackActiveOnly = true;
 
+export let urlIgnoreList = [];
+
 async function getActiveState() {
   let activeState = await chrome.storage.local.get('activeState');
 
   return activeState.activeState;
 }
 
+async function getIgnoreList() {
+  let ignoreList = await chrome.storage.local.get('ignoreList');
+
+  return ignoreList.ignoreList;
+}
+
 trackActiveOnly = await getActiveState();
+urlIgnoreList = await getIgnoreList();
 
 /*   TAB LISTENERS   */
 // set idle timer to 1min
@@ -131,16 +138,27 @@ chrome.runtime.onInstalled.addListener((details) => {
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if ('trackActive' in request) {
     trackActiveOnly = request.trackActive;
+    sendResponse({ activeState: trackActiveOnly });
+  } else if (request.msg === 'getActiveState') {
+    sendResponse({ activeState: trackActiveOnly });
+  } else if (request.msg === 'getIgnoreList') {
+    console.log();
+    sendResponse({ ignoreList: urlIgnoreList });
+  } else if ('ignoreList' in request) {
+    urlIgnoreList = request.ignoreList;
+    console.log(urlIgnoreList);
   }
-  sendResponse({ activeState: trackActiveOnly });
 
   // Note: Returning true is required here!
   //  ref: http://stackoverflow.com/questions/20077487/chrome-extension-message-passing-response-not-sent
   return true;
 });
 
-// chrome.storage.local.remove('activeState');
 if (Object.keys(await chrome.storage.local.get('activeState')).length === 0) {
   console.log('setting active state');
   chrome.storage.local.set({ activeState: true });
+}
+if (Object.keys(await chrome.storage.local.get('ignoreList')).length === 0) {
+  console.log('initializing ignoreList');
+  chrome.storage.local.set({ ignoreList: [] });
 }
