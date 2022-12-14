@@ -139,7 +139,6 @@ header {
 }
 
 #all-tabs-info:hover::after,
-#focus-info:hover::after,
 #ignore-info:hover::after {
   transform: translateY(-65px) translateX(10px);
   padding: 0.5rem;
@@ -160,10 +159,6 @@ header {
 
 #all-tabs-info:hover::after {
   content: 'tracks all open tabs in chrome, whether active or not. This is not recommended for someone who frequently uses many tabs because it will inflate daily web use time';
-}
-
-#focus-info:hover::after {
-  content: '"focused" window refers to the active window or the window "on top" if multiple chrome windows are open. Enabling this option does not allow for tracking multiple windows';
 }
 
 #ignore-info:hover::after {

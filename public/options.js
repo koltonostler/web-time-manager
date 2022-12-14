@@ -1,8 +1,54 @@
 'use strict';
 
+let options = {};
+
+const allTabsCheckbox = document.getElementById('all-tabs-checkbox');
+const mediaCheckbox = document.getElementById('idle-media-checkbox');
+const dropDown = document.getElementById('idle-timer');
+
 chrome.runtime.sendMessage({ msg: 'getIgnoreList' }, async function (response) {
   let ignoreList = await response.ignoreList;
   updateIgnoreList(ignoreList);
+});
+
+chrome.runtime.sendMessage({ msg: 'getOptions' }, async function (response) {
+  options = await response.options;
+  console.log(options);
+  if (options.idleMediaCheck) {
+    mediaCheckbox.checked = true;
+  } else {
+    mediaCheckbox.checked = false;
+  }
+
+  if (options.trackAllTabs) {
+    allTabsCheckbox.checked = true;
+  } else {
+    allTabsCheckbox.checked = false;
+  }
+
+  dropDown.value = options.idleTimer;
+});
+
+function updateOptions() {
+  chrome.storage.local.set({ options: options });
+}
+
+allTabsCheckbox.addEventListener('change', () => {
+  options.trackAllTabs = !options.trackAllTabs;
+  updateOptions();
+  chrome.runtime.sendMessage({ options: options });
+});
+
+mediaCheckbox.addEventListener('change', () => {
+  options.idleMediaCheck = !options.idleMediaCheck;
+  updateOptions();
+  chrome.runtime.sendMessage({ options: options });
+});
+
+dropDown.addEventListener('change', () => {
+  options.idleTimer = parseInt(dropDown.value);
+  updateOptions();
+  chrome.runtime.sendMessage({ options: options });
 });
 
 function populateIgnoreList(url, index) {

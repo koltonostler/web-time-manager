@@ -39,27 +39,12 @@ function connect() {
     .onDisconnect.addListener(connect);
 }
 
-let trackingInterval;
-let syncStorageActive = false;
-let timerActive = startTrackingTimer();
-
-export async function startTrackingTimer() {
-  trackingInterval = setInterval(async () => {
-    if (trackActiveOnly) {
-      let activeTabs = await getActiveTabs();
-      storeTabs(activeTabs);
-    } else {
-      let allTabs = await getAllTabs();
-      storeTabs(allTabs);
-    }
-  }, 1000);
-  return true;
-}
-
-export function stopTrackingTimer() {
-  clearInterval(trackingInterval);
-  return false;
-}
+let trackOptions = {
+  syncStorageActive: false,
+  trackAllTabs: false,
+  idleMediaCheck: true,
+  idleTimer: 15,
+};
 
 let trackActiveOnly = true;
 
@@ -77,14 +62,43 @@ async function getIgnoreList() {
   return ignoreList.ignoreList;
 }
 
+async function getOptions(key) {
+  let options = await chrome.storage.local.get('options');
+
+  return options.options[key];
+}
+
 trackActiveOnly = await getActiveState();
 urlIgnoreList = await getIgnoreList();
+trackOptions['syncStorageActive'] = await getOptions('syncStorageActive');
+trackOptions['trackAllTabs'] = await getOptions('trackAllTabs');
+trackOptions['idleMediaCheck'] = await getOptions('idleMediaCheck');
+trackOptions['idleTimer'] = await getOptions('idleTimer');
+
+let trackingInterval;
+let timerActive = startTrackingTimer();
+
+export async function startTrackingTimer() {
+  trackingInterval = setInterval(async () => {
+    if (trackOptions.trackAllTabs) {
+      let allTabs = await getAllTabs();
+      storeTabs(allTabs);
+    } else {
+      let activeTabs = await getActiveTabs();
+      storeTabs(activeTabs);
+    }
+  }, 1000);
+  return true;
+}
+
+export function stopTrackingTimer() {
+  clearInterval(trackingInterval);
+  return false;
+}
 
 /*   TAB LISTENERS   */
-// set idle timer to 1min
-let idleTimer = 60;
 
-chrome.idle.setDetectionInterval(idleTimer);
+chrome.idle.setDetectionInterval(trackOptions.idleTimer);
 
 chrome.idle.onStateChanged.addListener(async (newState) => {
   let audible = false;
@@ -98,21 +112,34 @@ chrome.idle.onStateChanged.addListener(async (newState) => {
   console.log(audible);
   console.log(newState);
 
-  if (!audible) {
+  if (trackOptions.idleMediaCheck) {
+    if (!audible) {
+      if (newState === 'idle') {
+        if (timerActive) {
+          timerActive = stopTrackingTimer();
+        }
+      }
+    }
+    if (newState === 'active') {
+      if (!timerActive) {
+        timerActive = startTrackingTimer();
+      }
+    }
+  } else {
     if (newState === 'idle') {
       if (timerActive) {
         timerActive = stopTrackingTimer();
       }
     }
-  }
-  if (newState === 'active') {
-    if (!timerActive) {
-      timerActive = startTrackingTimer();
+    if (newState === 'active') {
+      if (!timerActive) {
+        timerActive = startTrackingTimer();
+      }
     }
   }
 });
 
-if (syncStorageActive) {
+if (trackOptions.syncStorageActive) {
   console.log('sync storage active');
   getDataFromSyncStorage();
   setInterval(() => {
@@ -122,13 +149,12 @@ if (syncStorageActive) {
 
 chrome.runtime.onInstalled.addListener((details) => {
   chrome.storage.local.set({ budget: {} });
-  let installUrl = chrome.runtime.getURL('onboarding.html');
+  chrome.storage.local.set({ options: trackOptions });
+  chrome.storage.local.set({ ignoreList: [] });
+
   let uninstallUrl = 'https://forms.gle/PRjZvdV2J2VSPpKE7';
 
   if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
-    chrome.tabs.create({ url: installUrl }, function (tab) {
-      console.log('new install tab created');
-    });
     chrome.runtime.setUninstallURL(uninstallUrl, () => {
       console.log('uninstall url set');
     });
@@ -142,11 +168,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   } else if (request.msg === 'getActiveState') {
     sendResponse({ activeState: trackActiveOnly });
   } else if (request.msg === 'getIgnoreList') {
-    console.log();
     sendResponse({ ignoreList: urlIgnoreList });
   } else if ('ignoreList' in request) {
     urlIgnoreList = request.ignoreList;
-    console.log(urlIgnoreList);
+  } else if (request.msg === 'getOptions') {
+    sendResponse({ options: trackOptions });
+  } else if ('options' in request) {
+    trackOptions = request.options;
+    chrome.idle.setDetectionInterval(trackOptions.idleTimer);
   }
 
   // Note: Returning true is required here!
@@ -154,9 +183,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   return true;
 });
 
-if (Object.keys(await chrome.storage.local.get('activeState')).length === 0) {
-  console.log('setting active state');
-  chrome.storage.local.set({ activeState: true });
+if (Object.keys(await chrome.storage.local.get('options')).length === 0) {
+  console.log('initializing options');
+  chrome.storage.local.set({ options: trackOptions });
 }
 if (Object.keys(await chrome.storage.local.get('ignoreList')).length === 0) {
   console.log('initializing ignoreList');
