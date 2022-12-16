@@ -1,8 +1,8 @@
 #  Web Time Manager
 
 <p align="center">
-  <img width="460" height="400" src="https://user-images.githubusercontent.com/95270713/208166886-1d0b449d-033d-4737-8bd0-501e451992fc.PNG">
-  <img width="460" height="400" src="https://user-images.githubusercontent.com/95270713/208166907-61156a6d-60cf-4c67-bfc5-a1f25deb7383.PNG">
+  <img width="360" height="300" src="https://user-images.githubusercontent.com/95270713/208166886-1d0b449d-033d-4737-8bd0-501e451992fc.PNG">
+  <img width="360" height="300" src="https://user-images.githubusercontent.com/95270713/208166907-61156a6d-60cf-4c67-bfc5-a1f25deb7383.PNG">
 </p>
 
 <p align="center">
