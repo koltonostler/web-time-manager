@@ -39,25 +39,6 @@ setupBudgetListeners();
 setCounterEvents();
 getTop3();
 
-// let toggleActive = { trackActive: true };
-
-// function saveActiveState() {
-//   chrome.storage.local.set({ activeState: toggleActive.trackActive });
-// }
-
-// const toggle = document.getElementById('checkbox');
-
-// toggle.addEventListener('change', () => {
-//   toggleActive.trackActive = !toggleActive.trackActive;
-//   saveActiveState();
-//   chrome.runtime.sendMessage(toggleActive);
-// });
-
-// chrome.runtime.sendMessage({ msg: 'getActiveState' }, function (response) {
-//   toggleActive.trackActive = response.activeState;
-//   toggle.checked = toggleActive.trackActive;
-// });
-
 const dailyBtn = document.querySelector('#daily');
 const weeklyBtn = document.querySelector('#weekly');
 const timeSpan = document.querySelector('.total-time');
