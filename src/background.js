@@ -74,8 +74,8 @@ async function getIgnoreList() {
 
 async function getOptions(key) {
   let options = await chrome.storage.local.get('options');
-
-  if (options.options[key] !== undefined) {
+  console.log(options);
+  if (options.options !== undefined) {
     return options.options[key];
   }
   chrome.storage.local.set({ options: trackOptions });

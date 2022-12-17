@@ -98,12 +98,16 @@ async function getBudget(url) {
   // get domain data from storage
   const data = await chrome.storage.local.get('budget');
 
-  if (url in data['budget']) {
-    budget = data['budget'][url];
+  if (data['budget'] !== undefined) {
+    if (url in data['budget']) {
+      budget = data['budget'][url];
+    }
+
+    return budget;
   }
 
-  // if domain has data, get the budget
-  return budget;
+  chrome.storage.local.set({ budget: {} });
+  return null;
 }
 
 // function that will return true/false on if the site is blocked.
