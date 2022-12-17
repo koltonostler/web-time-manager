@@ -53,19 +53,34 @@ export let urlIgnoreList = [];
 async function getActiveState() {
   let activeState = await chrome.storage.local.get('activeState');
 
-  return activeState.activeState;
+  if (activeState.activeState !== undefined) {
+    return activeState.activeState;
+  }
+
+  chrome.storage.local.set({ activeState: true });
+  return true;
 }
 
 async function getIgnoreList() {
   let ignoreList = await chrome.storage.local.get('ignoreList');
 
-  return ignoreList.ignoreList;
+  if (ignoreList.ignoreList !== undefined) {
+    return ignoreList.ignoreList;
+  }
+
+  chrome.storage.local.set({ ignoreList: [] });
+  return [];
 }
 
 async function getOptions(key) {
   let options = await chrome.storage.local.get('options');
 
-  return options.options[key];
+  if (options.options[key] !== undefined) {
+    return options.options[key];
+  }
+  chrome.storage.local.set({ options: trackOptions });
+
+  return trackOptions[key];
 }
 
 trackActiveOnly = await getActiveState();

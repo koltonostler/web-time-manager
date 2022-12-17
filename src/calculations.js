@@ -249,7 +249,10 @@ function addOpenPopupListner(btn, popup, popupToClose) {
     openPopup(popup);
     closePopup(popupToClose);
     const domain = btn.id;
-    populateBudgetedTime(domain);
+    console.log(domain !== '');
+    if (domain !== '') {
+      populateBudgetedTime(domain);
+    }
   });
 }
 
@@ -261,30 +264,32 @@ export async function getBudgets() {
   let budgets = await chrome.storage.local.get('budget');
   budgets = budgets['budget'];
   let index = 0;
-  for (let domain in budgets) {
-    let newDiv = document.createElement('div');
-    let usedTime = todaysData[today][domain];
-    if (isNaN(usedTime)) {
-      usedTime = '0m';
-    } else {
-      usedTime = getTimeFormat3(usedTime);
-    }
-    let budgetedTime = budgets[domain];
-    budgetedTime = getTimeFormat3(budgetedTime);
-    newDiv.innerHTML = `<div class ='budget'>
-                            <div class ='budget-name'>${domain}</div>
-                            <div class = "bar-container">
-                                <span class='budget-time'> <b>${usedTime}</b> / ${budgetedTime}</span>
-                                <div class = "budget-bar" id="bar-${index}"></div>
+  if (todaysData !== undefined) {
+    for (let domain in budgets) {
+      let newDiv = document.createElement('div');
+      let usedTime = todaysData[today][domain];
+      if (isNaN(usedTime)) {
+        usedTime = '0m';
+      } else {
+        usedTime = getTimeFormat3(usedTime);
+      }
+      let budgetedTime = budgets[domain];
+      budgetedTime = getTimeFormat3(budgetedTime);
+      newDiv.innerHTML = `<div class ='budget'>
+                                <div class ='budget-name'>${domain}</div>
+                                <div class = "bar-container">
+                                    <span class='budget-time'> <b>${usedTime}</b> / ${budgetedTime}</span>
+                                    <div class = "budget-bar" id="bar-${index}"></div>
+                                </div>
+                                <button class="material-symbols-outlined timer" id="${domain}" title="edit timer">timer</button>                                           
                             </div>
-                            <button class="material-symbols-outlined timer" id="${domain}" title="edit timer">timer</button>                                           
-                        </div>
-    `;
-    budgetContainer.appendChild(newDiv);
-    createBarCss(index, todaysData[today][domain], budgets[domain]);
-    index++;
+        `;
+      budgetContainer.appendChild(newDiv);
+      createBarCss(index, todaysData[today][domain], budgets[domain]);
+      index++;
+    }
+    setupBudgetListeners();
   }
-  setupBudgetListeners();
 }
 
 function createBarCss(index, usedTime, totalTime) {

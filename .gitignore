@@ -8,5 +8,7 @@
 
 # misc
 .DS_Store
+*.crx
+*.pem
 
 npm-debug.log*
