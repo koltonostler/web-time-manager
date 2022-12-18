@@ -1,6 +1,8 @@
 'use strict';
 import { getDomain, getTimeFormat3 } from './calculations';
 import { urlIgnoreList } from './background';
+
+// This regex matches all urls that start with http and https
 const httpRegEx = /(?:https\:\/\/|http\:\/\/)(.*)/;
 
 //get all tabs

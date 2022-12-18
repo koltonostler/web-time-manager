@@ -97,6 +97,12 @@ export async function createTodaysChart() {
           legend: {
             display: true,
             reverse: true,
+            maxHeight: 50,
+            labels: {
+              // boxWidth: 15,
+              usePointStyle: true,
+              pointStyle: 'circle',
+            },
           },
           tooltip: {
             callbacks: {
@@ -124,7 +130,6 @@ export async function createTodaysChart() {
         data: chartData,
         options: options,
       };
-
       const ctx = document.getElementById('chart');
       let myChart = new Chart(ctx, config);
 
