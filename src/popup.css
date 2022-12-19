@@ -74,9 +74,9 @@ button {
   position: absolute;
   width: 150px;
   height: 150px;
-  top: 270px;
+  top: 265px;
   left: 235px;
-  background-color: transparent;
+  background-color: clear;
   border-radius: 50%;
   text-align: center;
   display: flex;
