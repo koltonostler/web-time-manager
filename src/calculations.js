@@ -182,7 +182,11 @@ export async function getTopSites() {
     let compiledResults = {};
     Object.keys(res)
       .filter((key) => {
-        if (['activeState', 'budget', 'lastTab', 'totals'].includes(key)) {
+        if (
+          ['activeState', 'budget', 'totals', 'ignoreList', 'options'].includes(
+            key
+          )
+        ) {
           return false;
         }
         return true;

@@ -1,7 +1,7 @@
 {
-  "name": "test-time-manager",
-  "version": "0.1.0",
-  "description": "My Chrome Extension",
+  "name": "web-time-manager",
+  "version": "1.0",
+  "description": "Tracks the amount of time you spent online.",
   "private": true,
   "scripts": {
     "watch": "webpack --mode=development --watch --config config/webpack.config.js",
