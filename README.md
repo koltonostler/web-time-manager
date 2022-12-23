@@ -28,7 +28,7 @@ I designed Web Time Manager with two main features:
 
 ## Install
 
-Feel free to download the extension and give it a try! [**Chrome** extension]() 
+Feel free to download the extension and give it a try! [**Chrome** extension](https://chrome.google.com/webstore/detail/web-time-manager/fompndjgkefggpakilkndcejnfikdccc) 
 
 ---
 
