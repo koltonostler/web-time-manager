@@ -1,7 +1,7 @@
 {
   "name": "web-time-manager",
   "version": "1.0",
-  "description": "Tracks the amount of time you spent online.",
+  "description": "Tracks the amount of time you spend online.",
   "private": true,
   "scripts": {
     "watch": "webpack --mode=development --watch --config config/webpack.config.js",
