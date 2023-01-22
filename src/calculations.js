@@ -132,7 +132,7 @@ export async function getTotalTimes() {
 }
 
 export async function getTop3() {
-  let orderedSites = await getTopSites();
+  let orderedSites = await getWeeklyTopSites();
   let top3 = [];
 
   for (let i = orderedSites.length - 1; i > orderedSites.length - 4; i--) {
@@ -177,19 +177,25 @@ export function toggleHide(element) {
   element.classList.toggle('hide');
 }
 
-export async function getTopSites() {
+export function getLastWeekFormatted(date) {
+  let lastWeek = getLastWeek(date);
+  let lastWeekFormated = Object.keys(lastWeek).map((key, index) => {
+    return lastWeek[key].fullDate.toDateString();
+  });
+  return lastWeekFormated;
+}
+
+export async function getWeeklyTopSites() {
+  let today = new Date().toDateString();
+  let lastWeekFormated = getLastWeekFormatted(today);
   let result = getAllData().then((res) => {
     let compiledResults = {};
     Object.keys(res)
       .filter((key) => {
-        if (
-          ['activeState', 'budget', 'totals', 'ignoreList', 'options'].includes(
-            key
-          )
-        ) {
-          return false;
+        if (lastWeekFormated.includes(key)) {
+          return true;
         }
-        return true;
+        return false;
       })
       .map((date) => {
         for (const domain in res[date]) {
@@ -216,11 +222,23 @@ export async function getTopSites() {
 export async function getWeeklyAvg() {
   const avgContainer = document.querySelector('.weekly-avg');
   const totals = await chrome.storage.local.get('totals');
+  const newTotals = totals['totals'];
+  let today = new Date().toDateString();
+  let lastWeekFormated = getLastWeekFormatted(today);
+
+  let lastWeekData = {};
+
+  for (let key in newTotals) {
+    if (lastWeekFormated.includes(key)) {
+      lastWeekData[key] = newTotals[key];
+    }
+  }
+
   if (Object.keys(totals).length === 0) {
     chrome.storage.local.set({ totals: {} });
   } else {
-    let weeklySum = Object.values(totals['totals']).reduce((a, b) => a + b, 0);
-    let weeklyAvg = weeklySum / Object.keys(totals['totals']).length;
+    let weeklySum = Object.values(lastWeekData).reduce((a, b) => a + b, 0);
+    let weeklyAvg = weeklySum / Object.keys(lastWeekData).length;
     weeklyAvg = getTimeFormat3(weeklyAvg);
     avgContainer.innerHTML = `${weeklyAvg}`;
   }
